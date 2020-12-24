@@ -1,378 +1,142 @@
-pvalue_change <-
+#' @name pvalue_single_thread_helper
+#' @title Compute the p-values for score change for a single motif and
+#' a set of indels with the same insertion length.
+#' @param insertion_len An integer for insertion length.
+#' @param pwm A numeric matrix for the position weight matrix of the motif.
+#' @param motif_name A character for the motif name.
+#' @param indel_info A list for information related to indels. See the
+#' argument for \code{\link{indel_p_values}} for more details.
+#' @param motif_scores A list object containing motif scores.
+#' @param prior A numeric vector for the prior of the Markov Chain background
+#' model.
+#' @param trans_mat A numeric matrix for the transition matrix of the Markov
+#' Chain background model.
+#' @param sample_size An integer for the Monte-Carlo sample size.
+#' @importFrom plyr ldply
+#' @return A data frame.
+pvalue_single_thread_helper <-
   function(insertion_len,
-           num_motifs,
-           motif_lib,
+           pwm,
+           motif_name,
            indel_info,
            motif_scores,
            prior,
            trans_mat,
            sample_size) {
-    x <- which(lapply(indel_info, `[[`, 2) == insertion_len)
-    indel_info_selected <- indel_info[x]
-    num_indels <- length(x)
-    selected_motif_scores <- list()
-    selected_motif_scores$match_pos_short <-
-      motif_scores$match_pos_short[x, , drop = FALSE]
-    selected_motif_scores$match_pos_long <-
-      motif_scores$match_pos_long[x, , drop = FALSE]
-    selected_motif_scores$log_lik_ratio <-
-      motif_scores$log_lik_ratio[x, , drop = FALSE]
-    selected_motif_scores$log_lik_short <-
-      motif_scores$log_lik_short[x, , drop = FALSE]
-    selected_motif_scores$log_lik_long <-
-      motif_scores$log_lik_long[x, , drop = FALSE]
-    selected_motif_scores$motif <- motif_scores$motif
-    selected_motif_scores$k <- motif_scores$k
     results2 <- list()
     result_id <- 1
 
-    for (indel_id in seq_along(indel_info_selected)) {
-      for (motif_id in seq_along(motif_lib)) {
-        # Step 2. Compute single allele p-values
-        this_indel_info <- indel_info_selected[[indel_id]]
-        pwm <- motif_lib[[motif_id]]
-        if (length(indel_info_selected) == 1) {
-          scores <-
-            t(
-              c(
-                selected_motif_scores$log_lik_long[motif_id],
-                selected_motif_scores$log_lik_short[motif_id]
-              )
-            )
-        } else{
-          scores <-
-            t(
-              c(
-                selected_motif_scores$log_lik_long[indel_id, motif_id],
-                selected_motif_scores$log_lik_short[indel_id, motif_id]
-              )
-            )
+    for (indel_id in seq_along(indel_info)) {
+      # Step 2. Compute single allele p-values
+      this_indel_info <- indel_info[[indel_id]]
+
+      scores <-
+        t(c(motif_scores$log_lik_long[indel_id],
+            motif_scores$log_lik_short[indel_id]))
+
+      p_value_affinity <- rep(0, 2)
+      for (j in seq(2)) {
+        if (j == 1) {
+          # for long sequence
+          sample_seq_len <-
+            2 * nrow(pwm) - 2 + this_indel_info$insertion_len
+          reference_score <-
+            motif_scores$log_lik_long[indel_id]
+
+        } else  if (j == 2) {
+          # j=2 for short sequence
+          sample_seq_len <- 2 * nrow(pwm) - 2
+          reference_score <-
+            motif_scores$log_lik_short[indel_id]
+
         }
-
-        p_value_affinity <- rep(0, 2)
-        for (j in seq(2)) {
-          if (j == 1) {
-            # for long sequence
-            sample_seq_len <-
-              2 * nrow(pwm) - 2 + this_indel_info$insertion_len
-            if (length(indel_info_selected) == 1) {
-              reference_score <-
-                selected_motif_scores$log_lik_long[motif_id]
-            } else{
-              reference_score <-
-                selected_motif_scores$log_lik_long[indel_id, motif_id]
-            }
-
-          } else  if (j == 2) {
-            # j=2 for short sequence
-            sample_seq_len <- 2 * nrow(pwm) - 2
-            if (length(indel_info_selected) == 1) {
-              reference_score <-
-                selected_motif_scores$log_lik_short[motif_id]
-            } else{
-              reference_score <-
-                selected_motif_scores$log_lik_short[indel_id, motif_id]
-            }
-
-          }
-          # Compute theta parameter in importance sampling distribution
-          theta <- .Call(
-            "test_find_theta",
-            pwm,
-            prior,
-            trans_mat,
-            # Importance sample scores will have
-            # average value of reference score.
-            reference_score,
-            sample_seq_len,
-            package = "atIndel"
-          )
-          p_value_affinity[j] <- pval_with_less_var(
-            .Call(
-              "compute_p_values",
-              # PWM
-              pwm,
-              # MC stationary distribution
-              prior,
-              # transition matrix
-              trans_mat,
-              scores[, j],
-              # theta parameter in importance sampling
-              theta,
-              sample_size,
-              # The sequence length
-              sample_seq_len,
-              # Use 1 for mean log lik scores
-              loglik_type = 0,
-              package = "atIndel"
-            )[, seq(4)] # the first 4 columns are p-values
-            # The last 4 columns are conditional p-values and are not used.
-          )[, 1]
-        }
-
-
-        mat_d <-
-          comp_indel_mat_d(pwm, prior, this_indel_info$insertion_len)
-        score_diff <- c(scores[, 1] - scores[, 2])
-        # reference_score is used to compute the theta parameter in importance
-        # sampling.
-        reference_score <-
-          selected_motif_scores$log_lik_long[indel_id, motif_id] - selected_motif_scores$log_lik_short[indel_id, motif_id]
-        p_value_change <-
+        # Compute theta parameter in importance sampling distribution
+        theta <- .Call(
+          "test_find_theta",
+          pwm,
+          prior,
+          trans_mat,
+          # Importance sample scores will have
+          # average value of reference score.
+          reference_score,
+          sample_seq_len,
+          package = "atIndel"
+        )
+        p_value_affinity[j] <- pval_with_less_var(
           .Call(
-            "p_value_change_indel",
-            # Markov Chain transition matrix
-            trans_mat,
-            # Markov Chain stationary distribution
-            prior,
-            # The D matrix used to induce binding affinity change
-            mat_d,
-            # Insertion length
-            this_indel_info$insertion_len,
+            "compute_p_values",
             # PWM
             pwm,
-            # Adjusted PWM
-            (pwm + 0.25) / 2,
-            score_diff,
-            c(log(p_value_affinity[1]) - log(p_value_affinity[2])),
-            # This is used to compute the theta parameter in importance
-            # sampling.
-            reference_score,
+            # MC stationary distribution
+            prior,
+            # transition matrix
+            trans_mat,
+            scores[, j],
+            # theta parameter in importance sampling
+            theta,
             sample_size,
+            # The sequence length
+            sample_seq_len,
+            # Use 1 for mean log lik scores
             loglik_type = 0,
             package = "atIndel"
-          )
-        results2[[result_id]] <- list(
-          motif_scores = scores,
-          p_value_change = list(
-            rank = pval_with_less_var(p_value_change$rank)[, 1],
-            score = pval_with_less_var(p_value_change$score)[, 1]
-          ),
-          p_value_affinity1 = p_value_affinity[1],
-          p_value_affinity2 = p_value_affinity[2]
-        )
-        result_id <- result_id + 1
+          )[, seq(4)] # the first 4 columns are p-values
+          # The last 4 columns are conditional p-values and are not used.
+        )[, 1]
       }
+
+
+      mat_d <-
+        comp_indel_mat_d(pwm, prior, this_indel_info$insertion_len)
+      score_diff <- c(scores[, 1] - scores[, 2])
+      # reference_score is used to compute the theta parameter in importance
+      # sampling.
+      reference_score <-
+        motif_scores$log_lik_long[indel_id] - motif_scores$log_lik_short[indel_id]
+      p_value_change <-
+        .Call(
+          "p_value_change_indel",
+          # Markov Chain transition matrix
+          trans_mat,
+          # Markov Chain stationary distribution
+          prior,
+          # The D matrix used to induce binding affinity change
+          mat_d,
+          # Insertion length
+          this_indel_info$insertion_len,
+          # PWM
+          pwm,
+          # Adjusted PWM
+          (pwm + 0.25) / 2,
+          score_diff,
+          c(log(p_value_affinity[1]) - log(p_value_affinity[2])),
+          # This is used to compute the theta parameter in importance
+          # sampling.
+          reference_score,
+          sample_size,
+          loglik_type = 0,
+          package = "atIndel"
+        )
+      results2[[result_id]] <- list(
+        motif_scores = scores,
+        p_value_change = list(
+          rank = pval_with_less_var(p_value_change$rank)[, 1],
+          score = pval_with_less_var(p_value_change$score)[, 1]
+        ),
+        p_value_affinity1 = p_value_affinity[1],
+        p_value_affinity2 = p_value_affinity[2]
+      )
+      result_id <- result_id + 1
     }
     r <- plyr::ldply (results2, data.frame)
     r <-
       data.frame(id <-
-                   rep(names(indel_info_selected), each = length(motif_lib)),
-                 motif = rep(names(motif_lib), num_indels),
-                 r)
+                   rep(names(indel_info)),
+                 motif = motif_name, r)
     colnames(r)[1] <- "id"
-    r
+    return(r)
   }
 
-mac_pvalue_change <- function(i,
-                              s,
-                              k,
-                              num_cores,
-                              num_motifs,
-                              motif_lib,
-                              indel_info,
-                              motif_scores,
-                              prior,
-                              trans_mat,
-                              sample_size) {
-  a <- list()
-  a <- BiocParallel::bpmapply(
-    function(x)
-      mac_pvalue_change.par(
-        i = i,
-        insertion_len = x,
-        k = k,
-        num_cores = num_cores,
-        num_motifs = num_motifs,
-        motif_lib = motif_lib,
-        indel_info = indel_info,
-        motif_scores = motif_scores,
-        prior = prior,
-        trans_mat = trans_mat,
-        sample_size = sample_size
-      ),
-    s,
-    BPPARAM = MulticoreParam(workers = num_cores),
-    SIMPLIFY = FALSE
-  )
-  do.call(rbind.data.frame, a)
-}
-
-mac_pvalue_change.par <-
-  function(i,
-           insertion_len,
-           k,
-           num_cores,
-           num_motifs,
-           motif_lib,
-           indel_info,
-           motif_scores,
-           prior,
-           trans_mat,
-           sample_size) {
-    x <- which(lapply(indel_info, `[[`, 2) == insertion_len)
-    indel_info_selected <- indel_info[x]
-    sequence_len <- length(x)
-    selected_motif_scores <- list()
-    selected_motif_scores$match_pos_short <-
-      motif_scores$match_pos_short[x,]
-    selected_motif_scores$match_pos_long <-
-      motif_scores$match_pos_long[x,]
-    selected_motif_scores$log_lik_ratio <-
-      motif_scores$log_lik_ratio[x,]
-    selected_motif_scores$log_lik_short <-
-      motif_scores$log_lik_short[x,]
-    selected_motif_scores$log_lik_long <-
-      motif_scores$log_lik_long[x,]
-    selected_motif_scores$motif <- motif_scores$motif
-    selected_motif_scores$k <- motif_scores$k
-    prior <- prior
-    trans_mat <- trans_mat
-    results2 <- list()
-    result_id <- 1
-
-    if (num_motifs >= k * num_cores + i) {
-      nm <- c(0:k) * num_cores + i
-    } else{
-      nm <- c(0:(k - 1)) * num_cores + i
-    }
-
-    for (indel_id in seq_along(indel_info_selected)) {
-      for (motif_id in c(nm)) {
-        # Step 2. Compute single allele p-values
-        indel_info <- indel_info_selected[[indel_id]]
-        pwm <- motif_lib[[motif_id]]
-        if (length(indel_info_selected) == 1) {
-          scores <-
-            t(
-              c(
-                selected_motif_scores$log_lik_long[motif_id],
-                selected_motif_scores$log_lik_short[motif_id]
-              )
-            )
-        } else{
-          scores <-
-            t(
-              c(
-                selected_motif_scores$log_lik_long[indel_id, motif_id],
-                selected_motif_scores$log_lik_short[indel_id, motif_id]
-              )
-            )
-        }
-
-        p_value_affinity <- rep(0, 2)
-        for (j in seq(2)) {
-          if (j == 1) {
-            # for long sequence
-            sample_seq_len <-
-              2 * nrow(pwm) - 2 + indel_info$insertion_len
-            if (length(indel_info_selected) == 1) {
-              reference_score <-
-                selected_motif_scores$log_lik_long[motif_id]
-            } else{
-              reference_score <-
-                selected_motif_scores$log_lik_long[indel_id, motif_id]
-            }
-
-          } else  if (j == 2) {
-            # j=2 for short sequence
-            sample_seq_len <- 2 * nrow(pwm) - 2
-            if (length(indel_info_selected) == 1) {
-              reference_score <-
-                selected_motif_scores$log_lik_short[motif_id]
-            } else{
-              reference_score <-
-                selected_motif_scores$log_lik_short[indel_id, motif_id]
-            }
-
-          }
-          # Compute theta parameter in importance sampling distribution
-          theta <- .Call(
-            "test_find_theta",
-            pwm,
-            prior,
-            trans_mat,
-            # Importance sample scores will have
-            # average value of reference score.
-            reference_score,
-            sample_seq_len,
-            package = "atIndel"
-          )
-          p_value_affinity[j] <- pval_with_less_var(
-            .Call(
-              "compute_p_values",
-              # PWM
-              pwm,
-              # MC stationary distribution
-              prior,
-              # transition matrix
-              trans_mat,
-              scores[, j],
-              # theta parameter in importance sampling
-              theta,
-              sample_size,
-              # The sequence length
-              sample_seq_len,
-              # Use 1 for mean log lik scores
-              loglik_type = 0,
-              package = "atIndel"
-            )[, seq(4)] # The first 4 columns are p-values
-            # The last 4 columns are conditional p-values and are not used.
-          )[, 1]
-        }
-
-
-        mat_d <-
-          comp_indel_mat_d(pwm, prior, indel_info$insertion_len)
-        score_diff <- c(scores[, 1] - scores[, 2])
-        # reference_score is used to compute the theta parameter in importance
-        # sampling
-        reference_score <-
-          selected_motif_scores$log_lik_long[indel_id, motif_id] - selected_motif_scores$log_lik_short[indel_id, motif_id]
-        p_value_change <-
-          .Call(
-            "p_value_change_indel",
-            # Markov Chain transition matrix
-            trans_mat,
-            # Markov Chain stationary distribution
-            prior,
-            # The D matrix used to induce binding affinity change
-            mat_d,
-            # Insertion length
-            indel_info$insertion_len,
-            # PWM
-            pwm,
-            # Adjusted PWM
-            (pwm + 0.25) / 2,
-            score_diff,
-            c(log(p_value_affinity[1]) - log(p_value_affinity[2])),
-            # This is used to compute the theta parameter in importance
-            # sampling.
-            reference_score,
-            sample_size,
-            loglik_type = 0
-          )
-        results2[[result_id]] <- list(
-          motif_scores = scores,
-          p_value_change = list(
-            rank = pval_with_less_var(p_value_change$rank)[, 1],
-            score = pval_with_less_var(p_value_change$score)[, 1]
-          ),
-          p_value_affinity1 = p_value_affinity[1],
-          p_value_affinity2 = p_value_affinity[2]
-        )
-        result_id <- result_id + 1
-      }
-    }
-    r <- ldply(results2, data.frame)
-    r <-
-      data.frame(id <-
-                   rep(names(indel_info_selected), each = length(nm)),
-                 motif = rep(names(motif_lib[nm]), sequence_len),
-                 r)
-    colnames(r)[1] <- "id"
-    r
-  }
 
 make_insertion_tbl <- function(a, long_insertion) {
   a <- merge(a, long_insertion, by = "id", all.x = TRUE)
@@ -429,7 +193,8 @@ make_motifscore_insertion_tbl <- function(a, long_insertion) {
 #' data(example)
 #' indel_motif_scores(motif_lib, indel_info, num_cores=1)
 #' @useDynLib atIndel
-#' @import BiocParallel Rcpp
+#' @import Rcpp
+#' @importFrom BiocParallel bpmapply MulticoreParam SnowParam
 #' @export
 indel_motif_scores <-
   function(motif_lib, indel_info, num_cores = 1) {
@@ -450,6 +215,11 @@ indel_motif_scores <-
         insertion = insertion
       )
     if (num_cores > 1) {
+      # TODO: refactor to remove code duplication.
+      # 1. Write a function motif_single_thread_helper that does calculation
+      # for a single motif; 2. use this function for all of Windows / Mac
+      # / non-parallel settings. Use lines after line 515 and
+      # pvalue_single_thread_helper as an example.
       if (Sys.info()[["sysname"]] == "Windows") {
         snow <- BiocParallel::SnowParam(workers = num_cores, type = "SOCK")
         motif_score_par <- function(i,
@@ -460,6 +230,13 @@ indel_motif_scores <-
                                     motif_lib,
                                     indel_info) {
           k <- list()
+          # TODO: In parallel calculation, we don't need to manually partition
+          # motifs in to num_cores groups as here. We only need to sepcify
+          # # of threads (num_cores). Each of them will pick one motif,
+          # calculate the scores. Once the calculation is done, the thread will
+          # pick up another motif that has not been calculated and continue the
+          # calculation. All threads will finish at the same time. Use lines
+          # after line 515 as an example.
           if (num_motifs >= ((k - 1) * num_cores + i)) {
             nm <- c(0:(k - 1)) * num_cores + i
           } else{
@@ -502,7 +279,8 @@ indel_motif_scores <-
         ml <- lapply(lapply(motif_score_par_list, `[[`, 2), `[[`, 2)
         short <-
           lapply(lapply(motif_score_par_list, `[[`, 2), `[[`, 4)
-        long <- lapply(lapply(motif_score_par_list, `[[`, 2), `[[`, 5)
+        long <-
+          lapply(lapply(motif_score_par_list, `[[`, 2), `[[`, 5)
         ratio <-
           lapply(lapply(motif_score_par_list, `[[`, 2), `[[`, 3)
         match_pos_short <- ms[[1]]
@@ -591,7 +369,8 @@ indel_motif_scores <-
         ml <- lapply(lapply(motif_score_par_list, `[[`, 2), `[[`, 2)
         short <-
           lapply(lapply(motif_score_par_list, `[[`, 2), `[[`, 4)
-        long <- lapply(lapply(motif_score_par_list, `[[`, 2), `[[`, 5)
+        long <-
+          lapply(lapply(motif_score_par_list, `[[`, 2), `[[`, 5)
         ratio <-
           lapply(lapply(motif_score_par_list, `[[`, 2), `[[`, 3)
         match_pos_short <- ms[[1]]
@@ -655,7 +434,8 @@ indel_motif_scores <-
           log_lik_long = as.vector(log_lik_long),
           log_lik_ratio = as.vector(log_lik_ratio)
         )
-      result$table <- make_motifscore_insertion_tbl(x, long_insertion)
+      result$table <-
+        make_motifscore_insertion_tbl(x, long_insertion)
       result$list <- motif_scores
       result$list$motif <- motifs
       result$list$k <- seq(num_motifs)
@@ -712,7 +492,8 @@ indel_motif_scores <-
 #'   num_cores=1
 #' )
 #' @useDynLib atIndel
-#' @import BiocParallel Rcpp plyr
+#' @import Rcpp
+#' @importFrom BiocParallel bpmapply MulticoreParam SnowParam
 #' @export
 indel_p_values <-
   function(motif_lib,
@@ -724,12 +505,10 @@ indel_p_values <-
            num_cores = 1) {
     indel_info_sorted <- rlist::list.sort(indel_info, insertion_len)
     m_list <- unlist(lapply(indel_info_sorted, `[[`, 2))
-    s <- unique(m_list)
-    motif_lib <- motif_lib[motif_scores$k]
+    insertion_lens <- unique(m_list)
     ids <- names(indel_info_sorted)
     num_motifs <- length(motif_lib)
     num_cores <- min(num_cores, num_motifs)
-    k <- as.integer(num_motifs / num_cores)
     motif_scores <- motif_scores
     prior <- prior
     insertion <- unlist(lapply(indel_info_sorted, `[[`, 3))
@@ -743,360 +522,82 @@ indel_p_values <-
         insertion = insertion
       )
 
+    param_list <- list()
+    for (insertion_len in insertion_lens) {
+      for (motif_id in seq_along(motif_lib)) {
+        x <- which(lapply(indel_info, `[[`, 2) == insertion_len)
+        indel_info_selected <- indel_info[x]
+        selected_motif_scores <- list()
+        for (field in c(
+          "match_pos_short",
+          "match_pos_long",
+          "log_lik_ratio",
+          "log_lik_short",
+          "log_lik_long"
+        )) {
+          selected_motif_scores[[field]] <- motif_scores[[field]][x, motif_id]
+        }
+        selected_motif_scores$motif <- motif_scores$motif
+        selected_motif_scores$k <- motif_scores$k
+        param_list <- rlist::list.append(
+          param_list,
+          list(
+            indel_info = indel_info_selected,
+            motif_scores = selected_motif_scores,
+            motif_name = names(motif_lib)[motif_id],
+            pwm = motif_lib[[motif_id]]
+          )
+        )
+      }
+    }
+
     if (num_cores > 1) {
       if (Sys.info()[["sysname"]] == "Windows") {
-        results2 <- list()
-        result_id <- 1
-        snow <- SnowParam(workers = num_cores, type = "SOCK")
-        motif_lib <- motif_lib
-        motif_scores <- motif_scores
-        win_pvalue_change.par <-
-          function(i,
-                   insertion_len,
-                   k,
-                   num_cores,
-                   num_motifs,
-                   motif_lib,
-                   indel_info,
-                   motif_scores,
-                   prior,
-                   trans_mat,
-                   sample_size) {
-            x <- which(lapply(indel_info, `[[`, 2) == insertion_len)
-            indel_info_selected <- indel_info[x]
-            sequence_len <- length(x)
-            motif_scores <- list()
-            motif_scores$match_pos_short <-
-              motif_scores$match_pos_short[x,]
-            motif_scores$match_pos_long <-
-              motif_scores$match_pos_long[x,]
-            motif_scores$log_lik_ratio <-
-              motif_scores$log_lik_ratio[x,]
-            motif_scores$log_lik_short <-
-              motif_scores$log_lik_short[x,]
-            motif_scores$log_lik_long <-
-              motif_scores$log_lik_long[x,]
-            motif_scores$motif <- motif_scores$motif
-            motif_scores$k <- motif_scores$k
-            results2 <- list()
-            result_id <- 1
-            if (num_motifs >= k * num_cores + i) {
-              nm <- c(seq_len(k)) * num_cores + i
-            } else{
-              nm <- c(seq_len(k - 1)) * num_cores + i
-            }
-
-            for (indel_id in seq_along(indel_info_selected)) {
-              for (motif_id in c(nm)) {
-                # Step 2. Compute single allele p-values
-                indel_info <- indel_info_selected[[indel_id]]
-                pwm <- motif_lib[[motif_id]]
-                if (length(indel_info_selected) == 1) {
-                  scores <-
-                    t(c(
-                      motif_scores$log_lik_long[motif_id],
-                      motif_scores$log_lik_short[motif_id]
-                    ))
-                } else{
-                  scores <-
-                    t(c(
-                      motif_scores$log_lik_long[indel_id, motif_id],
-                      motif_scores$log_lik_short[indel_id, motif_id]
-                    ))
-                }
-
-                p_value_affinity <- rep(0, 2)
-                for (j in seq(2)) {
-                  if (j == 1) {
-                    # for long sequence
-                    sample_seq_len <-
-                      2 * nrow(pwm) - 2 + indel_info$insertion_len
-                    if (length(indel_info_selected) == 1) {
-                      reference_score <-
-                        motif_scores$log_lik_long[motif_id]
-                    } else{
-                      reference_score <-
-                        motif_scores$log_lik_long[indel_id, motif_id]
-                    }
-
-                  } else  if (j == 2) {
-                    # j=2 for short sequence
-                    sample_seq_len <- 2 * nrow(pwm) - 2
-                    if (length(indel_info_selected) == 1) {
-                      reference_score <-
-                        motif_scores$log_lik_short[motif_id]
-                    } else{
-                      reference_score <-
-                        motif_scores$log_lik_short[indel_id, motif_id]
-                    }
-
-                  }
-                  # Compute theta parameter in importance sampling distribution
-                  theta <- .Call(
-                    "test_find_theta",
-                    pwm,
-                    prior,
-                    trans_mat,
-                    # Importance sample scores will have
-                    # average value of reference score.
-                    reference_score,
-                    sample_seq_len,
-                    package = "atIndel"
-                  )
-                  p_value_affinity[j] <- pval_with_less_var(
-                    .Call(
-                      "compute_p_values",
-                      # PWM
-                      pwm,
-                      # MC stationary distribution
-                      prior,
-                      # transition matrix
-                      trans_mat,
-                      scores[, j],
-                      # theta parameter in importance sampling
-                      theta,
-                      sample_size,
-                      # The sequence length
-                      sample_seq_len,
-                      # Use 1 for mean log lik scores
-                      loglik_type = 0,
-                      package = "atIndel"
-                    )[, seq(4)] # the first 4 columns are p-values
-                    # the last 4 columns are conditional p-values and are not useful here
-                  )[, 1]
-                }
-
-
-                mat_d <-
-                  comp_indel_mat_d(pwm, prior, indel_info$insertion_len)
-                score_diff <- c(scores[, 1] - scores[, 2])
-                # reference_score is used to compute the theta parameter in importance sampling
-                reference_score <-
-                  motif_scores$log_lik_long[indel_id, motif_id] - motif_scores$log_lik_short[indel_id, motif_id]
-                p_value_change <-
-                  .Call(
-                    "p_value_change_indel",
-                    # Markov Chain transition matrix
-                    trans_mat,
-                    # Markov Chain stationary distribution
-                    prior,
-                    # The D matrix used to induce binding affinity change
-                    mat_d,
-                    # Insertion length
-                    indel_info$insertion_len,
-                    # PWM
-                    pwm,
-                    # Adjusted PWM
-                    (pwm + 0.25) / 2,
-                    score_diff,
-                    c(log(p_value_affinity[1]) - log(p_value_affinity[2])),
-                    # This is used to compute the theta parameter in importance
-                    # sampling.
-                    reference_score,
-                    sample_size,
-                    loglik_type = 0,
-                    package = "atIndel"
-                  )
-                results2[[result_id]] <- list(
-                  motif_scores = scores,
-                  p_value_change = list(
-                    rank = pval_with_less_var(p_value_change$rank)[, 1],
-                    score = pval_with_less_var(p_value_change$score)[, 1]
-                  ),
-                  p_value_affinity1 = p_value_affinity[1],
-                  p_value_affinity2 = p_value_affinity[2]
-                )
-                result_id <- result_id + 1
-              }
-            }
-            r <- ldply (results2, data.frame)
-            r <-
-              data.frame(id <-
-                           rep(names(indel_info_selected), each = length(nm)),
-                         motif = rep(names(motif_lib[nm]), sequence_len),
-                         r)
-            colnames(r)[1] <- "id"
-            r
-          }
-
-        win_pvalue_change <- function(i,
-                                      s,
-                                      k,
-                                      num_cores,
-                                      num_motifs,
-                                      motif_lib,
-                                      indel_info,
-                                      motif_scores,
-                                      prior,
-                                      trans_mat,
-                                      sample_size) {
-          a <- list()
-          a <- BiocParallel::bpmapply(
-            function(x)
-              win_pvalue_change.par(
-                i = i,
-                insertion_len = x,
-                k = k,
-                num_cores = num_cores,
-                num_motifs = num_motifs,
-                motif_lib = motif_lib,
-                indel_info = indel_info,
-                motif_scores = motif_scores,
-                prior = prior,
-                trans_mat = trans_mat,
-                sample_size = sample_size
-              ),
-            s,
-            BPPARAM = MulticoreParam(workers = num_cores),
-            SIMPLIFY = FALSE
-          )
-          do.call(rbind.data.frame, a)
-          # b[order(id),]
-        }
-
-        # pval_par_list<-data.frame()
-        #
-        # for(i in seq(s)){
-        #   l1<-BiocParallel::bpmapply(
-        #     function(x,y)
-        #       win_pvalue_change(
-        #         i = x,
-        #         insertion_len = y,
-        #         k = k,
-        #         num_cores = num_cores,
-        #         num_motifs = num_motifs,
-        #         motif_lib = motif_lib,
-        #         indel_info = indel_info,
-        #         motif_scores=motif_scores,
-        #         prior=prior,
-        #         trans_mat=trans_mat,
-        #         sample_size=sample_size
-        #       ),
-        #     seq(num_cores),s[i],
-        #     BPPARAM = snow,
-        #     SIMPLIFY =FALSE
-        #   )
-        #   pval_par_list<-rbind(pval_par_list,do.call(rbind.data.frame,l1))
-        # }
-        # a<-pval_par_list[order(pval_par_list$id),]
-        # rownames(a) = seq_len(nrow(a))
-        # a
-        pval_par_list <- list()
-        pval_par_list <-
-          BiocParallel::bpmapply(
-            function(x)
-              win_pvalue_change(
-                i = x,
-                s = s,
-                k = k,
-                num_cores = num_cores,
-                num_motifs = num_motifs,
-                motif_lib = motif_lib,
-                indel_info = indel_info,
-                motif_scores = motif_scores,
-                prior = prior,
-                trans_mat = trans_mat,
-                sample_size = sample_size
-              ),
-            seq(num_cores),
-            BPPARAM = snow,
-            SIMPLIFY = FALSE
-          )
-        b <- do.call(rbind.data.frame,  pval_par_list)
-        b <- b[order(b$id),]
-        rownames(b) <- seq_len(nrow(b))
-        b <- make_insertion_tbl(b, long_insertion)
-        b
-      } else
-      {
-        pval_par_list <-
-          BiocParallel::bpmapply(
-            function(x)
-              mac_pvalue_change(
-                i = x,
-                s = s,
-                k = k,
-                num_cores = num_cores,
-                num_motifs = num_motifs,
-                motif_lib = motif_lib,
-                indel_info = indel_info,
-                motif_scores = motif_scores,
-                prior = prior,
-                trans_mat = trans_mat,
-                sample_size = sample_size
-              ),
-            seq(num_cores),
-            BPPARAM = MulticoreParam(workers = num_cores),
-            SIMPLIFY = FALSE
-          )
-
-        b <- do.call(rbind.data.frame,  pval_par_list)
-        b <- b[order(b$id),]
-        rownames(b) <- seq_len(nrow(b))
-        b <- make_insertion_tbl(b, long_insertion)
-        b
+        bp_param <-
+          BiocParallel::SnowParam(workers = num_cores, type = "SOCK")
+      } else {
+        bp_param <- BiocParallel::MulticoreParam(workers = num_cores)
       }
-
-      # pval_par_list <-
-      #   BiocParallel::bpmapply(
-      #     function(x,y)
-      #       mac_pvalue_change.par(
-      #         i = x,
-      #         insertion_len = y,
-      #         k = k,
-      #         num_cores = num_cores,
-      #         num_motifs = num_motifs,
-      #         motif_lib = motif_lib,
-      #         indel_info = indel_info,
-      #         motif_scores=motif_scores,
-      #         prior=prior,
-      #         trans_mat=trans_mat,
-      #         sample_size=sample_size
-      #       ),
-      #     seq(num_cores),s,
-      #     BPPARAM = MulticoreParam(workers =num_cores),
-      #     SIMPLIFY =FALSE
-      #   )
-      #do.call(rbind.data.frame,  pval_par_list)
-      # a<-pval_par_list[order(pval_par_list$id),]
-      # rownames(a) = seq_len(nrow(a))
-      # a
-    } else
-    {
-      #pval_par_list<-data.frame()
-
-      # for(i in seq(s)){
-      #   pval_par_list<-rbind(pval_par_list,pvalue_change(insertion_len =s[i],
-      #                                   num_motifs = num_motifs,
-      #                                   motif_lib = motif_lib,
-      #                                   indel_info = indel_info,
-      #                                   motif_scores=motif_scores,
-      #                                   prior=prior,
-      #                                   trans_mat=trans_mat,
-      #                                   sample_size=sample_size))
-      # }
-      pval_par_list <-
-        mapply(
-          function(x)
-            pvalue_change(
-              insertion_len = x,
-              num_motifs = num_motifs,
-              motif_lib = motif_lib,
-              indel_info = indel_info,
-              motif_scores = motif_scores,
+      results <-
+        BiocParallel::bpmapply(
+          function(param)
+            pvalue_single_thread_helper(
+              insertion_len = param$insertion_len,
+              motif_name = param$motif_name,
+              pwm = param$pwm,
+              indel_info = param$indel_info,
+              motif_scores = param$motif_scores,
               prior = prior,
               trans_mat = trans_mat,
               sample_size = sample_size
             ),
-          s,
+          param_list,
+          BPPARAM = bp_param,
           SIMPLIFY = FALSE
         )
-
-      b <- do.call(rbind.data.frame,  pval_par_list)
-      b <- b[order(b$id),]
-      rownames(b) <- seq_len(nrow(b))
-      b <- make_insertion_tbl(b, long_insertion)
-      b
+    } else
+    {
+      results <-
+        mapply(
+          function(param)
+            pvalue_single_thread_helper(
+              insertion_len = param$insertion_len,
+              motif_name = param$motif_name,
+              pwm = param$pwm,
+              indel_info = param$indel_info,
+              motif_scores = param$motif_scores,
+              prior = prior,
+              trans_mat = trans_mat,
+              sample_size = sample_size
+            ),
+          param_list,
+          SIMPLIFY = FALSE
+        )
     }
-
+    merged_result <- do.call(rbind.data.frame,  results)
+    merged_result <- merged_result[order(merged_result$id), ]
+    rownames(merged_result) <- seq_len(nrow(merged_result))
+    merged_result <-
+      make_insertion_tbl(merged_result, long_insertion)
+    return(merged_result)
   }

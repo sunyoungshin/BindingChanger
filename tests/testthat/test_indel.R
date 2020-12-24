@@ -197,8 +197,8 @@ test_that("Error: distribution of the motif scores is not correct.",
                 })
               suppressWarnings({
                 # NOTE: ks.test warns about ties
-                expect_gte(ks.test(score_pairs[1,], score_pairs[3, ])$p.value, 0.05)
-                expect_gte(ks.test(score_pairs[2,], score_pairs[4, ])$p.value, 0.05)
+                expect_gte(ks.test(score_pairs[1, ], score_pairs[3,])$p.value, 0.05)
+                expect_gte(ks.test(score_pairs[2, ], score_pairs[4,])$p.value, 0.05)
               })
             }
           })

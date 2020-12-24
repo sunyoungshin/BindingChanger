@@ -84,7 +84,9 @@ R_motif_score_subseq <-
 #' Generate artifacts for unit tests.
 gen_test_artifacts <- function() {
   data(example)
-  test_pwm <- motif_lib$Arnt
+  # NOTE: don't choose a motif with 0/1 probabilities here. Certain tests may
+  # fail due to such degenerate PWMs.
+  test_pwm <- motif_lib$`Ddit3::Cebpa`
   adj_pwm <- (test_pwm + 0.25) / apply(test_pwm + 0.25, 1, sum)
   return(list(
     prior = prior,

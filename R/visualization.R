@@ -63,7 +63,30 @@ makepfull <- function(p, left, right) {
   }
 }
 
-plotbinding <- function(seq_pool, seq, score, motif_pool, motif) {
+
+#' @name plot_indel_binding
+#' @title Plot the indel binding for both reference and mutated alleles.
+#' @param seq_pool TODO
+#' @param seq TODO
+#' @param score TODO
+#' @param motif_pool TODO
+#' @param motif TODO
+#' @examples
+#' data(example)
+#' motif_scores <- indel_motif_scores(motif_lib, indel_info)$list
+#' plot_indel_binding(
+#'    indel_info,
+#'    indel_info[1],
+#'    motif_scores,
+#'    motif_lib,
+#'    motif_lib[1]
+#' )
+#' @import grid
+#' @importFrom motifStack plotMotifLogo
+#' @author Qinyi Zhou \email{qinyi.zhou@utdallas.edu},
+#' Sunyoung Shin \email{sunyoung.shin@@utdallas.edu}
+#' @export
+plot_indel_binding <- function(seq_pool, seq, score, motif_pool, motif) {
   j1 <- which(names(seq_pool) == names(seq))
   j2 <- which(score$motif == names(motif))
   insertion <- seq[[1]]$insertion
@@ -102,7 +125,7 @@ plotbinding <- function(seq_pool, seq, score, motif_pool, motif) {
       #   height = unit(1, "npc") - unit(3, "lines")
       # ))
       pushViewport(viewport(y = .125, height = .25))
-      plotMotifLogo(
+      motifStack::plotMotifLogo(
         p_full,
 
         yaxis = FALSE,
@@ -146,7 +169,7 @@ plotbinding <- function(seq_pool, seq, score, motif_pool, motif) {
       popViewport()
       pushViewport(viewport(y = .325, height = .25))
       #par(mar = c(4, 3, 1.5, 2))
-      plotMotifLogo(
+      motifStack::plotMotifLogo(
         a,
         #paste("insertion=",insertion),
         xaxis = FALSE,
@@ -197,7 +220,7 @@ plotbinding <- function(seq_pool, seq, score, motif_pool, motif) {
         p_full <- makepfull(p, left, right)
         popViewport()
         pushViewport(viewport(y = .575, height = .25))
-        plotMotifLogo(
+        motifStack::plotMotifLogo(
           a_full,
           xaxis = FALSE,
           yaxis = FALSE,
@@ -221,7 +244,7 @@ plotbinding <- function(seq_pool, seq, score, motif_pool, motif) {
         #grid.rect(x=((nlong-m)/2-0.25)/nlong, width = m/nlong, gp=gpar(col="blue", lty=3, lwd=2, fill=NA))
         popViewport()
         pushViewport(viewport(y = .825, height = .25))
-        plotMotifLogo(
+        motifStack::plotMotifLogo(
           p_full,
           paste(names(motif), "binding change by InDel", names(seq)),
           font = "Helvetica-Bold",
@@ -315,7 +338,7 @@ plotbinding <- function(seq_pool, seq, score, motif_pool, motif) {
           )
         popViewport()
         pushViewport(viewport(y = .575, height = .25))
-        plotMotifLogo(
+        motifStack::plotMotifLogo(
           a_full,
           xaxis = FALSE,
           yaxis = FALSE,
@@ -338,7 +361,7 @@ plotbinding <- function(seq_pool, seq, score, motif_pool, motif) {
         )
         popViewport()
         pushViewport(viewport(y = .825, height = .25))
-        plotMotifLogo(
+        motifStack::plotMotifLogo(
           p_full,
           paste(names(motif), "binding change by InDel", names(seq)),
           font = "Helvetica-Bold",
@@ -431,7 +454,7 @@ plotbinding <- function(seq_pool, seq, score, motif_pool, motif) {
       #   height = unit(1, "npc") - unit(3, "lines")
       # ))
       pushViewport(viewport(y = .125, height = .25))
-      plotMotifLogo(
+      motifStack::plotMotifLogo(
         p_full,
         yaxis = FALSE,
         xaxis = FALSE,
@@ -469,11 +492,11 @@ plotbinding <- function(seq_pool, seq, score, motif_pool, motif) {
           ends = "first"
         )
       )
-      # plotMotifLogo(a)
+      # motifStack::plotMotifLogo(a)
       popViewport()
       pushViewport(viewport(y = .325, height = .25))
       #par(mar = c(4, 3, 1.5, 2))
-      plotMotifLogo(
+      motifStack::plotMotifLogo(
         a,
         xaxis = FALSE,
         yaxis = FALSE,
@@ -523,7 +546,7 @@ plotbinding <- function(seq_pool, seq, score, motif_pool, motif) {
         p_full <- makepfull(p, left, right)
         popViewport()
         pushViewport(viewport(y = .575, height = .25))
-        plotMotifLogo(
+        motifStack::plotMotifLogo(
           a_full,
           xaxis = FALSE,
           yaxis = FALSE,
@@ -546,7 +569,7 @@ plotbinding <- function(seq_pool, seq, score, motif_pool, motif) {
         )
         popViewport()
         pushViewport(viewport(y = .825, height = .25))
-        plotMotifLogo(
+        motifStack::plotMotifLogo(
           p_full,
           paste(names(motif), "binding change by InDel", names(seq)),
           font = "Helvetica-Bold",
@@ -642,7 +665,7 @@ plotbinding <- function(seq_pool, seq, score, motif_pool, motif) {
           )
         popViewport()
         pushViewport(viewport(y = .575, height = .25))
-        plotMotifLogo(
+        motifStack::plotMotifLogo(
           a_full,
           xaxis = FALSE,
           yaxis = FALSE,
@@ -666,7 +689,7 @@ plotbinding <- function(seq_pool, seq, score, motif_pool, motif) {
         popViewport()
         pushViewport(viewport(y = .825, height = .25))
         #par(mar = c(4, 3, 1.5, 2))
-        plotMotifLogo(
+        motifStack::plotMotifLogo(
           p_full,
           paste(names(motif), "binding change by InDel", names(seq)),
           font = "Helvetica-Bold",
@@ -750,7 +773,7 @@ plotbinding <- function(seq_pool, seq, score, motif_pool, motif) {
       p_full <- makepfull(p, left, right)
       ##
       pushViewport(viewport(y = .825, height = .25))
-      plotMotifLogo(
+      motifStack::plotMotifLogo(
         p_full,
         paste(names(motif), "binding change by InDel", names(seq)),
         font = "Helvetica-Bold",
@@ -792,11 +815,11 @@ plotbinding <- function(seq_pool, seq, score, motif_pool, motif) {
         gp = gpar(col = "blue", cex = 1),
         y = unit(.5, "lines")
       )
-      # plotMotifLogo(a)
+      # motifStack::plotMotifLogo(a)
       popViewport()
       pushViewport(viewport(y = .575, height = .25))
       #par(mar = c(4, 3, 1.5, 2))
-      plotMotifLogo(
+      motifStack::plotMotifLogo(
         a,
         #paste("insertion=",insertion),
         xaxis = FALSE,
@@ -845,7 +868,7 @@ plotbinding <- function(seq_pool, seq, score, motif_pool, motif) {
         #title<-ifelse(insertion==1,"Best match to the reference sequence m=","Best match to the mutation sequence m=")
         popViewport()
         pushViewport(viewport(y = .325, height = .25))
-        plotMotifLogo(
+        motifStack::plotMotifLogo(
           a_full,
           xaxis = FALSE,
           yaxis = FALSE,
@@ -869,7 +892,7 @@ plotbinding <- function(seq_pool, seq, score, motif_pool, motif) {
         #grid.rect(x=((nlong-m)/2-0.25)/nlong, width = m/nlong, gp=gpar(col="blue", lty=3, lwd=2, fill=NA))
         popViewport()
         pushViewport(viewport(y = .125, height = .25))
-        plotMotifLogo(
+        motifStack::plotMotifLogo(
           p_full,
           yaxis = FALSE,
           xaxis = FALSE,
@@ -949,7 +972,7 @@ plotbinding <- function(seq_pool, seq, score, motif_pool, motif) {
           )
         popViewport()
         pushViewport(viewport(y = .325, height = .25))
-        plotMotifLogo(
+        motifStack::plotMotifLogo(
           a_full,
           xaxis = FALSE,
           yaxis = FALSE,
@@ -973,7 +996,7 @@ plotbinding <- function(seq_pool, seq, score, motif_pool, motif) {
         popViewport()
         pushViewport(viewport(y = .125, height = .25))
         #par(mar = c(4, 3, 1.5, 2))
-        plotMotifLogo(
+        motifStack::plotMotifLogo(
           p_full,
           yaxis = FALSE,
           xaxis = FALSE,
@@ -1051,7 +1074,7 @@ plotbinding <- function(seq_pool, seq, score, motif_pool, motif) {
           "Best match to the reference sequence m="
         )
       pushViewport(viewport(y = .825, height = .25))
-      plotMotifLogo(
+      motifStack::plotMotifLogo(
         p_full,
         paste(names(motif), "binding change by InDel", names(seq)),
         font = "Helvetica-Bold",
@@ -1092,11 +1115,11 @@ plotbinding <- function(seq_pool, seq, score, motif_pool, motif) {
           ends = "first"
         )
       )
-      # plotMotifLogo(a)
+      # motifStack::plotMotifLogo(a)
       popViewport()
       pushViewport(viewport(y = .575, height = .25))
       #par(mar = c(4, 3, 1.5, 2))
-      plotMotifLogo(
+      motifStack::plotMotifLogo(
         a,
         font = "mono,Courier",
         xaxis = FALSE,
@@ -1149,7 +1172,7 @@ plotbinding <- function(seq_pool, seq, score, motif_pool, motif) {
           )
         popViewport()
         pushViewport(viewport(y = .325, height = .25))
-        plotMotifLogo(
+        motifStack::plotMotifLogo(
           a_full,
           font = "mono,Courier",
           xaxis = FALSE,
@@ -1174,7 +1197,7 @@ plotbinding <- function(seq_pool, seq, score, motif_pool, motif) {
         # grid.rect(x=((nlong-m)/2)/nlong, width = m/nlong, gp=gpar(col="blue", lty=3, lwd=2, fill=NA))
         popViewport()
         pushViewport(viewport(y = .125, height = .25))
-        plotMotifLogo(
+        motifStack::plotMotifLogo(
           p_full,
           yaxis = FALSE,
           xaxis = FALSE,
@@ -1255,7 +1278,7 @@ plotbinding <- function(seq_pool, seq, score, motif_pool, motif) {
           )
         popViewport()
         pushViewport(viewport(y = .375, height = .25))
-        plotMotifLogo(
+        motifStack::plotMotifLogo(
           a_full,
           xaxis = FALSE,
           yaxis = FALSE,
@@ -1279,7 +1302,7 @@ plotbinding <- function(seq_pool, seq, score, motif_pool, motif) {
         popViewport()
         pushViewport(viewport(y = .125, height = .25))
         #par(mar = c(4, 3, 1.5, 2))
-        plotMotifLogo(
+        motifStack::plotMotifLogo(
           p_full,
           yaxis = FALSE,
           xaxis = FALSE,
