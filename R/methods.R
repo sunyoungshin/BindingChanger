@@ -555,6 +555,9 @@ indel_p_values <-
       if (Sys.info()[["sysname"]] == "Windows") {
         bp_param <-
           BiocParallel::SnowParam(workers = num_cores, type = "SOCK")
+        # NOTE: for some reason BiocParallel complains not
+        # finding this object without doing so.
+        trans_mat <- trans_mat
       } else {
         bp_param <- BiocParallel::MulticoreParam(workers = num_cores)
       }
