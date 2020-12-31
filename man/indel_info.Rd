@@ -19,8 +19,14 @@ reference allele sequence. Nucleotides are coded as "A"-1, "C"-2, "G"-3,
 insertion_len \tab The length of the inserted / deleted sequence.\cr
 insertion \tab A boolean variable indicating whether the indel is an
 insertion (TRUE) or a deletion (FALSE).\cr
-ref \tab A character vector TODO\cr
-alt \tab A character vector TODO\cr
+ref \tab A character vector for the nucleotides around the indel location
+on the reference allele. For deletion, this is the nucleotide before the
+deletion location plus the deleted nucleotides. For insertion, this is
+the nucleotide before the insertion location.\cr
+alt \tab A character vector for the nucleotides around the indel location
+on the alternative allele. For insertion, this is the nucleotide before the
+insertion location plus the inserted nucleotides. For deletion, this is
+the nucleotide before the deletion location.\cr
 }
 }
 \author{

@@ -4,18 +4,17 @@
 \alias{plot_indel_binding}
 \title{Plot the indel binding for both reference and mutated alleles.}
 \usage{
-plot_indel_binding(seq_pool, seq, score, motif_pool, motif)
+plot_indel_binding(indel_info, motif_scores, motif)
 }
 \arguments{
-\item{seq_pool}{TODO}
+\item{indel_info}{A list of length 1 containing the indel information. See
+\link{indel_info} for details and an example.}
 
-\item{seq}{TODO}
+\item{motif_scores}{A list of the same structure as the '$list' field in the
+output of \code{\link{indel_motif_scores}}.}
 
-\item{score}{TODO}
-
-\item{motif_pool}{TODO}
-
-\item{motif}{TODO}
+\item{motif}{A list of length 1 containing the motif PWM. The
+name of this element is the motif name.}
 }
 \description{
 Plot the indel binding for both reference and mutated alleles.
@@ -24,10 +23,8 @@ Plot the indel binding for both reference and mutated alleles.
 data(example)
 motif_scores <- indel_motif_scores(motif_lib, indel_info)$list
 plot_indel_binding(
-   indel_info,
    indel_info[1],
    motif_scores,
-   motif_lib,
    motif_lib[1]
 )
 }

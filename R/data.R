@@ -22,8 +22,14 @@ NULL
 #' insertion_len \tab The length of the inserted / deleted sequence.\cr
 #' insertion \tab A boolean variable indicating whether the indel is an
 #' insertion (TRUE) or a deletion (FALSE).\cr
-#' ref \tab A character vector TODO\cr
-#' alt \tab A character vector TODO\cr
+#' ref \tab A character vector for the nucleotides around the indel location
+#' on the reference allele. For deletion, this is the nucleotide before the
+#' deletion location plus the deleted nucleotides. For insertion, this is
+#' the nucleotide before the insertion location.\cr
+#' alt \tab A character vector for the nucleotides around the indel location
+#' on the alternative allele. For insertion, this is the nucleotide before the
+#' insertion location plus the inserted nucleotides. For deletion, this is
+#' the nucleotide before the deletion location.\cr
 #' }
 #' @docType data
 #' @format A list object.
@@ -35,8 +41,9 @@ NULL
 #' @name prior
 #' @title Default stationary distribution for nucleotide sequences in the
 #' reference genome.
-#' @description This parameter is fitted using 61bp windowns around the SNPs in
-#' the NHGRI catalog. Loaded by 'data(default_par)'.
+#' @description This parameter is fitted using randomly selected 100K 100bp
+#' sequences from hg19, excluding the first and last 10k base pairs of each
+#' chromosome, according to a 1st-order Markov model.
 #' @docType data
 #' @format A numeric vector.
 #' @author Qinyi Zhou \email{qinyi.zhou@utdallas.edu},
@@ -47,8 +54,9 @@ NULL
 #' @name trans_mat
 #' @title Default transition probability matrix for nucleotide sequences in the
 #' reference genome.
-#' @description ?? This parameter is fitted using 61bp windowns around the
-#' SNPs in the NHGRI catalog. Loaded by 'data(default_par)'.
+#' @description This parameter is fitted using randomly selected 100K 100bp
+#' sequences from hg19, excluding the first and last 10k base pairs of each
+#' chromosome, according to a 1st-order Markov model.
 #' @docType data
 #' @format A 4 by 4 numeric matrix.
 #' @author Qinyi Zhou \email{qinyi.zhou@utdallas.edu},

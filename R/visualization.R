@@ -66,19 +66,18 @@ makepfull <- function(p, left, right) {
 
 #' @name plot_indel_binding
 #' @title Plot the indel binding for both reference and mutated alleles.
-#' @param seq_pool TODO
-#' @param seq TODO
-#' @param score TODO
-#' @param motif_pool TODO
-#' @param motif TODO
+#' @param indel_info A list of length 1 containing the indel information. See
+#' \link{indel_info} for details and an example.
+#' @param motif_scores A list of the same structure as the '$list' field in the
+#' output of \code{\link{indel_motif_scores}}.
+#' @param motif A list of length 1 containing the motif PWM. The
+#' name of this element is the motif name.
 #' @examples
 #' data(example)
 #' motif_scores <- indel_motif_scores(motif_lib, indel_info)$list
 #' plot_indel_binding(
-#'    indel_info,
 #'    indel_info[1],
 #'    motif_scores,
-#'    motif_lib,
 #'    motif_lib[1]
 #' )
 #' @import grid
@@ -86,15 +85,25 @@ makepfull <- function(p, left, right) {
 #' @author Qinyi Zhou \email{qinyi.zhou@utdallas.edu},
 #' Sunyoung Shin \email{sunyoung.shin@@utdallas.edu}
 #' @export
-plot_indel_binding <- function(seq_pool, seq, score, motif_pool, motif) {
-  j1 <- which(names(seq_pool) == names(seq))
-  j2 <- which(score$motif == names(motif))
-  insertion <- seq[[1]]$insertion
-  m <- seq[[1]]$insertion_len
+plot_indel_binding <- function(indel_info, motif_scores, motif) {
+  if(length(indel_info) != 1) {
+    stop("indel_info must have length 1.")
+  }
+  validate_motif_scores(motif_scores)
+  j1 <- which(names(motif_scores$ref) == names(indel_info))
+  j2 <- which(motif_scores$motif == names(motif))
+  if(length(j1) != 1) {
+    stop("Cannot find the scores corresponding to 'indel_info' in 'motif_scores'.")
+  }
+  if(length(j2) != 1) {
+    stop("Cannot find the scores corresponding to 'motif' in 'motif_scores'.")
+  }
+  insertion <- indel_info[[1]]$insertion
+  m <- indel_info[[1]]$insertion_len
   #long seq
-  long_best_match <- score$match_pos_long[j1, j2]
+  long_best_match <- motif_scores$match_pos_long[j1, j2]
   long_strand_sign <- sign(long_best_match)
-  seque <- seq[[1]]$inserted_sequence
+  seque <- indel_info[[1]]$inserted_sequence
   n <- length(seque)
   n1 <- (n - m) / 2
   lm <- nrow(motif[[1]])
@@ -103,7 +112,7 @@ plot_indel_binding <- function(seq_pool, seq, score, motif_pool, motif) {
   longer <- seque[s1:e1]
   nlong <- length(longer)
   #short seq
-  short_best_match <- score$match_pos_short[j1, j2]
+  short_best_match <- motif_scores$match_pos_short[j1, j2]
   short_strand_sign <- sign(short_best_match)
   s2 <- n1
   e2 <- n1 + m + 1
@@ -246,7 +255,7 @@ plot_indel_binding <- function(seq_pool, seq, score, motif_pool, motif) {
         pushViewport(viewport(y = .825, height = .25))
         motifStack::plotMotifLogo(
           p_full,
-          paste(names(motif), "binding change by InDel", names(seq)),
+          paste(names(motif), "binding change by InDel", names(indel_info)),
           font = "Helvetica-Bold",
           ncex = 1.2,
           yaxis = FALSE,
@@ -363,7 +372,7 @@ plot_indel_binding <- function(seq_pool, seq, score, motif_pool, motif) {
         pushViewport(viewport(y = .825, height = .25))
         motifStack::plotMotifLogo(
           p_full,
-          paste(names(motif), "binding change by InDel", names(seq)),
+          paste(names(motif), "binding change by InDel", names(indel_info)),
           font = "Helvetica-Bold",
           ncex = 1.2,
           yaxis = FALSE,
@@ -571,7 +580,7 @@ plot_indel_binding <- function(seq_pool, seq, score, motif_pool, motif) {
         pushViewport(viewport(y = .825, height = .25))
         motifStack::plotMotifLogo(
           p_full,
-          paste(names(motif), "binding change by InDel", names(seq)),
+          paste(names(motif), "binding change by InDel", names(indel_info)),
           font = "Helvetica-Bold",
           ncex = 1.2,
           yaxis = FALSE,
@@ -691,7 +700,7 @@ plot_indel_binding <- function(seq_pool, seq, score, motif_pool, motif) {
         #par(mar = c(4, 3, 1.5, 2))
         motifStack::plotMotifLogo(
           p_full,
-          paste(names(motif), "binding change by InDel", names(seq)),
+          paste(names(motif), "binding change by InDel", names(indel_info)),
           font = "Helvetica-Bold",
           ncex = 1.2,
           yaxis = FALSE,
@@ -775,7 +784,7 @@ plot_indel_binding <- function(seq_pool, seq, score, motif_pool, motif) {
       pushViewport(viewport(y = .825, height = .25))
       motifStack::plotMotifLogo(
         p_full,
-        paste(names(motif), "binding change by InDel", names(seq)),
+        paste(names(motif), "binding change by InDel", names(indel_info)),
         font = "Helvetica-Bold",
         ncex = 1.2,
         yaxis = FALSE,
@@ -1076,7 +1085,7 @@ plot_indel_binding <- function(seq_pool, seq, score, motif_pool, motif) {
       pushViewport(viewport(y = .825, height = .25))
       motifStack::plotMotifLogo(
         p_full,
-        paste(names(motif), "binding change by InDel", names(seq)),
+        paste(names(motif), "binding change by InDel", names(indel_info)),
         font = "Helvetica-Bold",
         ncex = 1.2,
         yaxis = FALSE,

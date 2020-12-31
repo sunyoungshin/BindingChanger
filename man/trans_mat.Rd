@@ -9,8 +9,9 @@ reference genome.}
 A 4 by 4 numeric matrix.
 }
 \description{
-?? This parameter is fitted using 61bp windowns around the
-SNPs in the NHGRI catalog. Loaded by 'data(default_par)'.
+This parameter is fitted using randomly selected 100K 100bp
+sequences from hg19, excluding the first and last 10k base pairs of each
+chromosome, according to a 1st-order Markov model.
 }
 \author{
 Qinyi Zhou \email{qinyi.zhou@utdallas.edu},

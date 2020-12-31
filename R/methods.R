@@ -168,20 +168,8 @@ make_motifscore_insertion_tbl <- function(a, long_insertion) {
 #' @description Compute the motif scores given a motif library and a list of
 # indels.
 #' @param motif_lib A list of the position weight matrices for the motifs.
-#' @param indel_info A list object. Each element corresponds to an indel and
-#'' includes the following components:
-#' \tabular{ll}{
-#' inserted_sequence \tab An integer vector representing the deroxyribose
-#' sequence around each indel location for the longer sequence. For an
-#' insertion, this is the inserted sequence. For an deletion, this is the
-#' reference allele sequence. Nucleotides are coded as "A"-1, "C"-2, "G"-3,
-#' "T"-4.\cr
-#' insertion_len \tab The length of the inserted / deleted sequence.\cr
-#' insertion \tab A boolean variable indicating whether the indel is an
-#' insertion (TRUE) or a deletion (FALSE).\cr
-#' ref \tab A character vector TODO\cr
-#' alt \tab A character vector TODO\cr
-#' }
+#' @param indel_info A list object. Each element corresponds to an indel.
+#' See \link{indel_info} for details and an example.
 #' @param num_cores An integer for the number of parallel processes used for
 #' parallel computation.
 #' @details TODO.
@@ -452,20 +440,8 @@ indel_motif_scores <-
 #' @description Compute the motif scores given a motif library and a list of
 # indels.
 #' @param motif_lib A list of the position weight matrices for the motifs.
-#' @param indel_info A list object. Each element corresponds to an indel and
-#'' includes the following components:
-#' \tabular{ll}{
-#' inserted_sequence \tab An integer vector representing the deroxyribose
-#' sequence around each indel location for the longer sequence. For an
-#' insertion, this is the inserted sequence. For an deletion, this is the
-#' reference allele sequence. Nucleotides are coded as "A"-1, "C"-2, "G"-3,
-#' "T"-4.\cr
-#' insertion_len \tab The length of the inserted / deleted sequence.\cr
-#' insertion \tab A boolean variable indicating whether the indel is an
-#' insertion (TRUE) or a deletion (FALSE).\cr
-#' ref \tab A character vector TODO\cr
-#' alt \tab A character vector TODO\cr
-#' }
+#' @param indel_info A list object. Each element corresponds to an indel.
+#' See \link{indel_info} for details and an example.
 #' @param motif_scores A data frame in the same format as the output of
 #' \code{\link{indel_motif_scores}}.
 #' @param prior A numeric vector for the prior distribution parameters of

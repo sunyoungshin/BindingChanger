@@ -157,7 +157,7 @@ match_subseq_par <-
     } else {
       ids <- (par.k * (par.ncores - 1) + 1):length(par.snpids)
     }
-    motif.scores_i <- par.motif.scores[snpid %in% par.snpids[ids], ]
+    motif.scores_i <- par.motif.scores[snpid %in% par.snpids[ids],]
     setkey(motif.scores_i, motif)
     motif.scores_i <- par.motif.tbl[motif.scores_i]
     setkey(motif.scores_i, snpid, snpbase)
@@ -277,7 +277,7 @@ p_values_for_motif <-
     wei.mat <- pwm
     for (i in seq(nrow(wei.mat))) {
       for (j in seq(ncol(wei.mat))) {
-        wei.mat[i, j] <- exp(mean(log(pwm[i, j] / pwm[i, -j])))
+        wei.mat[i, j] <- exp(mean(log(pwm[i, j] / pwm[i,-j])))
       }
     }
 
@@ -509,12 +509,12 @@ p_values_for_motif <-
       pval_diff.new <- pval_with_less_var(pval_diff.new$score)
       update.id <-
         which(pval_diff.new[, 2] < pval_diff[compute.id, 2])
-      pval_diff[compute.id[update.id], ] <-
-        pval_diff.new[update.id, ]
+      pval_diff[compute.id[update.id],] <-
+        pval_diff.new[update.id,]
       update.id <-
         which(pval_rank.new[, 2] < pval_rank[compute.id, 2])
-      pval_rank[compute.id[update.id], ] <-
-        pval_rank.new[update.id, ]
+      pval_rank[compute.id[update.id],] <-
+        pval_rank.new[update.id,]
     }
 
     ## force the monotonicity
@@ -549,7 +549,7 @@ p_values_for_motif <-
       print(
         ggplot(
           aes(x = score, y = p.value),
-          data = plotdat[plotdat$Allele == "ref", ],
+          data = plotdat[plotdat$Allele == "ref",],
           environment = localenv
         ) + geom_point() + scale_y_log10(breaks = 10 ^ seq(-8, 0)) + geom_errorbar(aes(
           ymax = p.value + sqrt(var), ymin = p.value - sqrt(var)
@@ -560,7 +560,7 @@ p_values_for_motif <-
       print(
         ggplot(
           aes(x = score, y = p.value),
-          data = plotdat[plotdat$Allele == "snp", ],
+          data = plotdat[plotdat$Allele == "snp",],
           environment = localenv
         ) + geom_point() + scale_y_log10(breaks = 10 ^ seq(-8, 0)) + geom_errorbar(aes(
           ymax = p.value + sqrt(var), ymin = p.value - sqrt(var)
@@ -602,8 +602,36 @@ comp_indel_mat_d <- function(pwm, stat_dist, insertion_len) {
   for (i in seq(nrow(pwm))) {
     for (j in seq(ncol(pwm))) {
       mat_d[i, j] <-
-        exp(sum(stat_dist * log(pwm[i, j] / pwm[i, ])))
+        exp(sum(stat_dist * log(pwm[i, j] / pwm[i,])))
     }
   }
   return(mat_d)
+}
+
+validate_motif_scores <- function(motif_scores_list) {
+  if (!all(names(motif_scores_list$ref) == names(motif_scores_list$alt))
+      |
+      !all(names(motif_scores_list$ref) == names(motif_scores_list$insertion))) {
+    stop("Indel names in '$ref' and '$alt' are not consistent.")
+  }
+  n_motif <- length(motif_scores_list$motif)
+  n_indels <- length(motif_scores_list$ref)
+  for (field in c(
+    "match_pos_short",
+    "match_pos_long",
+    "log_lik_ratio",
+    "log_lik_short",
+    "log_lik_long"
+  )) {
+    if (n_motif != ncol(motif_scores_list[[field]])) {
+      stop("Number of motifs is not consistent between '$",
+           field,
+           "' and '$motif'.")
+    }
+    if (n_indels != nrow(motif_scores_list[[field]])) {
+      stop("Number of indels is not consistent between '$",
+           field,
+           "' and '$ref'.")
+    }
+  }
 }
