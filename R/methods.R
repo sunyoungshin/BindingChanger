@@ -1,7 +1,6 @@
 #' @name pvalue_single_thread_helper
 #' @title Compute the p-values for score change for a single motif and
 #' a set of indels with the same insertion length.
-#' @param insertion_len An integer for insertion length.
 #' @param pwm A numeric matrix for the position weight matrix of the motif.
 #' @param motif_name A character for the motif name.
 #' @param indel_info A list for information related to indels. See the
@@ -15,14 +14,17 @@
 #' @importFrom plyr ldply
 #' @return A data frame.
 pvalue_single_thread_helper <-
-  function(insertion_len,
-           pwm,
+  function(pwm,
            motif_name,
            indel_info,
            motif_scores,
            prior,
            trans_mat,
            sample_size) {
+    if (length(unique(sapply(indel_info, "[[", "insertion_len"))) != 1) {
+      stop("All indels must have the same insertion length.")
+    }
+
     results2 <- list()
     result_id <- 1
 
@@ -85,7 +87,6 @@ pvalue_single_thread_helper <-
         )[, 1]
       }
 
-
       mat_d <-
         comp_indel_mat_d(pwm, prior, this_indel_info$insertion_len)
       score_diff <- c(scores[, 1] - scores[, 2])
@@ -134,6 +135,13 @@ pvalue_single_thread_helper <-
                    rep(names(indel_info)),
                  motif = motif_name, r)
     colnames(r)[1] <- "id"
+    message(
+      "Finished p-value calculation for motif ",
+      motif_name,
+      " and indels ",
+      paste(names(indel_info), collapse = ", "),
+      "."
+    )
     return(r)
   }
 
@@ -190,6 +198,14 @@ indel_motif_scores <-
     ids <- names(indel_info)
     num_motifs <- length(motif_lib)
     sequence_len <- length(indel_info)
+
+    if (length(unique(motifs)) != length(motifs)) {
+      stop("Motif names in 'motif_lib' are not unique.")
+    }
+    if (length(unique(ids)) != length(ids)) {
+      stop("Indel names in 'indel_info' are not unique.")
+    }
+
     num_cores <- min(num_cores, num_motifs)
     k <- as.integer(num_motifs / num_cores)
     insertion <- unlist(lapply(indel_info, `[[`, 3))
@@ -479,6 +495,8 @@ indel_p_values <-
            trans_mat,
            sample_size,
            num_cores = 1) {
+    validate_motif_scores(motif_scores, names(motif_lib), names(indel_info))
+
     indel_info_sorted <- rlist::list.sort(indel_info, insertion_len)
     m_list <- unlist(lapply(indel_info_sorted, `[[`, 2))
     insertion_lens <- unique(m_list)
@@ -500,7 +518,8 @@ indel_p_values <-
 
     param_list <- list()
     for (insertion_len in insertion_lens) {
-      for (motif_id in seq_along(motif_lib)) {
+      for (motif_name in names(motif_lib)) {
+        motif_id <- which(names(motif_scores$motif) == motif_name)
         x <- which(lapply(indel_info, `[[`, 2) == insertion_len)
         indel_info_selected <- indel_info[x]
         selected_motif_scores <- list()
@@ -520,8 +539,8 @@ indel_p_values <-
           list(
             indel_info = indel_info_selected,
             motif_scores = selected_motif_scores,
-            motif_name = names(motif_lib)[motif_id],
-            pwm = motif_lib[[motif_id]]
+            motif_name = motif_name,
+            pwm = motif_lib[[motif_name]]
           )
         )
       }
@@ -541,7 +560,6 @@ indel_p_values <-
         BiocParallel::bpmapply(
           function(param)
             pvalue_single_thread_helper(
-              insertion_len = param$insertion_len,
               motif_name = param$motif_name,
               pwm = param$pwm,
               indel_info = param$indel_info,
@@ -560,7 +578,6 @@ indel_p_values <-
         mapply(
           function(param)
             pvalue_single_thread_helper(
-              insertion_len = param$insertion_len,
               motif_name = param$motif_name,
               pwm = param$pwm,
               indel_info = param$indel_info,

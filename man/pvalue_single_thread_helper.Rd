@@ -6,7 +6,6 @@
 a set of indels with the same insertion length.}
 \usage{
 pvalue_single_thread_helper(
-  insertion_len,
   pwm,
   motif_name,
   indel_info,
@@ -17,8 +16,6 @@ pvalue_single_thread_helper(
 )
 }
 \arguments{
-\item{insertion_len}{An integer for insertion length.}
-
 \item{pwm}{A numeric matrix for the position weight matrix of the motif.}
 
 \item{motif_name}{A character for the motif name.}

@@ -86,16 +86,16 @@ makepfull <- function(p, left, right) {
 #' Sunyoung Shin \email{sunyoung.shin@@utdallas.edu}
 #' @export
 plot_indel_binding <- function(indel_info, motif_scores, motif) {
-  if(length(indel_info) != 1) {
+  if (length(indel_info) != 1) {
     stop("indel_info must have length 1.")
   }
-  validate_motif_scores(motif_scores)
+  validate_motif_scores(motif_scores, names(motif), names(indel_info))
   j1 <- which(names(motif_scores$ref) == names(indel_info))
   j2 <- which(motif_scores$motif == names(motif))
-  if(length(j1) != 1) {
+  if (length(j1) != 1) {
     stop("Cannot find the scores corresponding to 'indel_info' in 'motif_scores'.")
   }
-  if(length(j2) != 1) {
+  if (length(j2) != 1) {
     stop("Cannot find the scores corresponding to 'motif' in 'motif_scores'.")
   }
   insertion <- indel_info[[1]]$insertion
@@ -255,7 +255,11 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
         pushViewport(viewport(y = .825, height = .25))
         motifStack::plotMotifLogo(
           p_full,
-          paste(names(motif), "binding change by InDel", names(indel_info)),
+          paste(
+            names(motif),
+            "binding change by InDel",
+            names(indel_info)
+          ),
           font = "Helvetica-Bold",
           ncex = 1.2,
           yaxis = FALSE,
@@ -329,7 +333,8 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
         rownames(a) <- c("A", "C", "G", "T")
         l1 <- floor(m / 2)
         r1 <- m - l1
-        right <- (nlong - m) / 2 - (short_best_match + n1 + 1) + m - r1
+        right <-
+          (nlong - m) / 2 - (short_best_match + n1 + 1) + m - r1
         left <- nlong - lm - right
         if (l1 == 0) {
           a_full <- cbind(a, rep.col(c(0.25, 0.25, 0.25, 0.25), r1))
@@ -372,7 +377,11 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
         pushViewport(viewport(y = .825, height = .25))
         motifStack::plotMotifLogo(
           p_full,
-          paste(names(motif), "binding change by InDel", names(indel_info)),
+          paste(
+            names(motif),
+            "binding change by InDel",
+            names(indel_info)
+          ),
           font = "Helvetica-Bold",
           ncex = 1.2,
           yaxis = FALSE,
@@ -580,7 +589,11 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
         pushViewport(viewport(y = .825, height = .25))
         motifStack::plotMotifLogo(
           p_full,
-          paste(names(motif), "binding change by InDel", names(indel_info)),
+          paste(
+            names(motif),
+            "binding change by InDel",
+            names(indel_info)
+          ),
           font = "Helvetica-Bold",
           ncex = 1.2,
           yaxis = FALSE,
@@ -656,7 +669,8 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
         rownames(a) <- c("A", "C", "G", "T")
         l1 <- floor(m / 2)
         r1 <- m - l1
-        right <- (nlong - m) / 2 - (short_best_match + n1 + 1) + m - r1
+        right <-
+          (nlong - m) / 2 - (short_best_match + n1 + 1) + m - r1
         left <- nlong - lm - right
         if (l1 == 0) {
           a_full <- cbind(a, rep.col(c(0.25, 0.25, 0.25, 0.25), r1))
@@ -700,7 +714,11 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
         #par(mar = c(4, 3, 1.5, 2))
         motifStack::plotMotifLogo(
           p_full,
-          paste(names(motif), "binding change by InDel", names(indel_info)),
+          paste(
+            names(motif),
+            "binding change by InDel",
+            names(indel_info)
+          ),
           font = "Helvetica-Bold",
           ncex = 1.2,
           yaxis = FALSE,
@@ -784,7 +802,11 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
       pushViewport(viewport(y = .825, height = .25))
       motifStack::plotMotifLogo(
         p_full,
-        paste(names(motif), "binding change by InDel", names(indel_info)),
+        paste(
+          names(motif),
+          "binding change by InDel",
+          names(indel_info)
+        ),
         font = "Helvetica-Bold",
         ncex = 1.2,
         yaxis = FALSE,
@@ -1085,7 +1107,11 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
       pushViewport(viewport(y = .825, height = .25))
       motifStack::plotMotifLogo(
         p_full,
-        paste(names(motif), "binding change by InDel", names(indel_info)),
+        paste(
+          names(motif),
+          "binding change by InDel",
+          names(indel_info)
+        ),
         font = "Helvetica-Bold",
         ncex = 1.2,
         yaxis = FALSE,
