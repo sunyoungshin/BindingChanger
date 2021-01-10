@@ -5,7 +5,9 @@
 #' @param motif_name A character for the motif name.
 #' @param indel_info A list for information related to indels. See the
 #' argument for \code{\link{indel_p_values}} for more details.
-#' @param motif_scores A list object containing motif scores.
+#' @param motif_scores A numeric matrix including two column. The first column
+#' is the scores for the longer sequences. The 2nd column is the scores for the
+#' shorter sequences. Each row corresponding to one indel.
 #' @param prior A numeric vector for the prior of the Markov Chain background
 #' model.
 #' @param trans_mat A numeric matrix for the transition matrix of the Markov
@@ -26,7 +28,7 @@ pvalue_single_thread_helper <-
     }
 
     message(
-      "Calculate p-values for motifs ",
+      "Calculate p-values for motif ",
       motif_name,
       " and indels ",
       paste(names(indel_info), collapse = ", "),
@@ -39,9 +41,7 @@ pvalue_single_thread_helper <-
       # Step 2. Compute single allele p-values
       this_indel_info <- indel_info[[indel_id]]
 
-      scores <-
-        t(c(motif_scores$log_lik_long[indel_id],
-            motif_scores$log_lik_short[indel_id]))
+      scores <- motif_scores[indel_id, , drop = FALSE]
 
       p_value_affinity <- rep(0, 2)
       for (j in seq(2)) {
@@ -49,15 +49,12 @@ pvalue_single_thread_helper <-
           # for long sequence
           sample_seq_len <-
             2 * nrow(pwm) - 2 + this_indel_info$insertion_len
-          reference_score <-
-            motif_scores$log_lik_long[indel_id]
+          reference_score <- motif_scores[indel_id, 1]
 
         } else  if (j == 2) {
           # j=2 for short sequence
           sample_seq_len <- 2 * nrow(pwm) - 2
-          reference_score <-
-            motif_scores$log_lik_short[indel_id]
-
+          reference_score <- motif_scores[indel_id, 2]
         }
         # Compute theta parameter in importance sampling distribution
         theta <- .Call(
@@ -100,7 +97,7 @@ pvalue_single_thread_helper <-
       # reference_score is used to compute the theta parameter in importance
       # sampling.
       reference_score <-
-        motif_scores$log_lik_long[indel_id] - motif_scores$log_lik_short[indel_id]
+        motif_scores[indel_id, 1] - motif_scores[indel_id, 2]
       p_value_change <-
         .Call(
           "p_value_change_indel",
@@ -143,7 +140,7 @@ pvalue_single_thread_helper <-
                  motif = motif_name, r)
     colnames(r)[1] <- "id"
     message(
-      "Finished p-value calculation for motifs ",
+      "Finished p-value calculation for motif ",
       motif_name,
       " and indels ",
       paste(names(indel_info), collapse = ", "),
@@ -526,26 +523,20 @@ indel_p_values <-
     param_list <- list()
     for (insertion_len in insertion_lens) {
       for (motif_name in names(motif_lib)) {
-        motif_id <- which(names(motif_scores$motif) == motif_name)
+        motif_id <- which(motif_scores$motif == motif_name)
         x <- which(lapply(indel_info, `[[`, 2) == insertion_len)
         indel_info_selected <- indel_info[x]
-        selected_motif_scores <- list()
-        for (field in c(
-          "match_pos_short",
-          "match_pos_long",
-          "log_lik_ratio",
-          "log_lik_short",
-          "log_lik_long"
-        )) {
-          selected_motif_scores[[field]] <- motif_scores[[field]][x, motif_id]
-        }
-        selected_motif_scores$motif <- motif_scores$motif
-        selected_motif_scores$k <- motif_scores$k
         param_list <- rlist::list.append(
           param_list,
           list(
             indel_info = indel_info_selected,
-            motif_scores = selected_motif_scores,
+            motif_scores = matrix(
+              c(
+                motif_scores$log_lik_long[x, motif_id],
+                motif_scores$log_lik_short[x, motif_id]
+              ),
+              ncol = 2
+            ),
             motif_name = motif_name,
             pwm = motif_lib[[motif_name]]
           )
@@ -556,15 +547,22 @@ indel_p_values <-
     if (num_cores > 1) {
       if (Sys.info()[["sysname"]] == "Windows") {
         bp_param <-
-          BiocParallel::SnowParam(workers = num_cores,
-                                  type = "SOCK",
-                                  progressbar = TRUE)
+          BiocParallel::SnowParam(
+            workers = num_cores,
+            type = "SOCK",
+            progressbar = TRUE,
+            tasks = length(param_list)
+          )
         # NOTE: for some reason BiocParallel complains not
         # finding this object without doing so.
         trans_mat <- trans_mat
       } else {
         bp_param <-
-          BiocParallel::MulticoreParam(workers = num_cores, progressbar = TRUE)
+          BiocParallel::MulticoreParam(
+            workers = num_cores,
+            progressbar = TRUE,
+            tasks = length(param_list)
+          )
       }
       results <-
         BiocParallel::bpmapply(

@@ -23,7 +23,9 @@ pvalue_single_thread_helper(
 \item{indel_info}{A list for information related to indels. See the
 argument for \code{\link{indel_p_values}} for more details.}
 
-\item{motif_scores}{A list object containing motif scores.}
+\item{motif_scores}{A numeric matrix including two column. The first column
+is the scores for the longer sequences. The 2nd column is the scores for the
+shorter sequences. Each row corresponding to one indel.}
 
 \item{prior}{A numeric vector for the prior of the Markov Chain background
 model.}
