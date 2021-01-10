@@ -25,6 +25,13 @@ pvalue_single_thread_helper <-
       stop("All indels must have the same insertion length.")
     }
 
+    message(
+      "Calculate p-values for motifs ",
+      motif_name,
+      " and indels ",
+      paste(names(indel_info), collapse = ", "),
+      "."
+    )
     results2 <- list()
     result_id <- 1
 
@@ -136,7 +143,7 @@ pvalue_single_thread_helper <-
                  motif = motif_name, r)
     colnames(r)[1] <- "id"
     message(
-      "Finished p-value calculation for motif ",
+      "Finished p-value calculation for motifs ",
       motif_name,
       " and indels ",
       paste(names(indel_info), collapse = ", "),
@@ -549,12 +556,15 @@ indel_p_values <-
     if (num_cores > 1) {
       if (Sys.info()[["sysname"]] == "Windows") {
         bp_param <-
-          BiocParallel::SnowParam(workers = num_cores, type = "SOCK")
+          BiocParallel::SnowParam(workers = num_cores,
+                                  type = "SOCK",
+                                  progressbar = TRUE)
         # NOTE: for some reason BiocParallel complains not
         # finding this object without doing so.
         trans_mat <- trans_mat
       } else {
-        bp_param <- BiocParallel::MulticoreParam(workers = num_cores)
+        bp_param <-
+          BiocParallel::MulticoreParam(workers = num_cores, progressbar = TRUE)
       }
       results <-
         BiocParallel::bpmapply(
@@ -591,7 +601,7 @@ indel_p_values <-
         )
     }
     merged_result <- do.call(rbind.data.frame,  results)
-    merged_result <- merged_result[order(merged_result$id), ]
+    merged_result <- merged_result[order(merged_result$id),]
     rownames(merged_result) <- seq_len(nrow(merged_result))
     merged_result <-
       make_insertion_tbl(merged_result, long_insertion)
