@@ -1,7 +1,7 @@
 Package: atIndel
 Type: Package
 Title: Affinity test for identifying regularity Indels
-Version: 0.0.1
+Version: 0.0.2
 Date: 2020-12-22
 Authors@R: c(person(given = "Chandler", family = "Zuo", role = "aut"),
         person(given = "Qinyi", family = "Zhou", role = "aut"),
