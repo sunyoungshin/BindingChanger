@@ -58,8 +58,10 @@ void PairedImportanceSamplingBase::validate()
         this->mc_param.stat_dist.size() != N_LETTERS ||
         this->mc_param.trans_mat.ncol() != N_LETTERS ||
         this->adj_pwm.ncol() != PairedImportanceSamplingBase::N_LETTERS ||
+        this->pwm.ncol() != PairedImportanceSamplingBase::N_LETTERS ||
         this->mat_d.ncol() != PairedImportanceSamplingBase::N_LETTERS ||
-        this->adj_pwm.nrow() != this->mat_d.nrow())
+        this->adj_pwm.nrow() != this->mat_d.nrow()||
+        this->pwm.nrow() != this->mat_d.nrow())
     {
         throw std::length_error("Invalid matrix/vector dimensions.");
     };
