@@ -178,7 +178,7 @@ RcppExport SEXP p_value_change_indel(
     NumericVector sample_score(5);
 
     // find the tilting parameter
-    ImportanceSampleIndel sampler(mc_param, adj_pwm, mat_d, insertion_len);
+    ImportanceSampleIndel sampler(mc_param, adj_pwm, pwm, mat_d, insertion_len);
     sampler.initialize(score_percentile);
 
     double tol = 1e-10;
@@ -200,7 +200,6 @@ RcppExport SEXP p_value_change_indel(
     {
         SampleSequence example = sampler.gen_importance_sample();
         ScorePair sample_score_pair = sampler.comp_score_pair(
-            pwm,
             example.sequence,
             loglik_type);
         AdjWeights adj_weights = sampler.gen_importance_sample_weights(example.sequence);
@@ -386,17 +385,11 @@ SampleSequence ImportanceSampleIndel::gen_importance_sample()
 }
 
 ScorePair ImportanceSampleIndel::comp_score_pair(
-    NumericMatrix pwm,
     IntegerVector sample_vec,
     LoglikType loglik_type)
 {
     // compute the reverse strand sequence
-    int motif_len = pwm.nrow();
-    if (pwm.ncol() != ImportanceSampleIndel::N_LETTERS ||
-        motif_len != this->mat_d.nrow())
-    {
-        throw std::length_error("Inconsistent matrix/vector dimensions.");
-    };
+    int motif_len = this->pwm.nrow();
     // The longer sequence, passed in by 'example', has length
     // motif_len*2+insertion_len-2.
     // The shorter sequence has length motif_len*2-2
@@ -409,8 +402,8 @@ ScorePair ImportanceSampleIndel::comp_score_pair(
     }
     // compute the maximum score for both sequences
     double long_seq_score = 0, short_seq_score = 0;
-    SequenceScores long_seq_scores = comp_seq_scores(pwm, sample_vec);
-    SequenceScores short_seq_scores = comp_seq_scores(pwm, short_seq);
+    SequenceScores long_seq_scores = comp_seq_scores(this->pwm, sample_vec);
+    SequenceScores short_seq_scores = comp_seq_scores(this->pwm, short_seq);
     switch (loglik_type)
     {
     case LoglikType::mean:
@@ -554,6 +547,15 @@ double ImportanceSampleIndel::comp_expected_score_diff(double theta)
                 cond_score_diff += nume / denom;
             }
         }
+        /*
+        for (int c=s; c <= s + motif_len-1; ++c) {
+            if (c< motif_len-1 || c > motif_len+this->insertion_len-2) {
+                for (int j =0; j < ImportanceSampleIndel::N_LETTERS; ++ j) {
+                    cond_score_diff += (this->adj_pwm(c-s,j)-this->mc_param.stat_dist[j])*log(this->pwm(c-s,j));
+                }
+            }
+        }
+        */
         expected_score_diff += cond_score_diff * cond_norm_const[s];
     }
     expected_score_diff /= norm_const;
@@ -563,8 +565,8 @@ double ImportanceSampleIndel::comp_expected_score_diff(double theta)
 /* Given a set of parameters,
 1. Compute the parameters of the sampler;
 2. Generate a random example;
-3. Compute the scores and the adjustment weights for this example. 
-Return sampling parameters, random example and adjust weights. This 
+3. Compute the scores and the adjustment weights for this example.
+Return sampling parameters, random example and adjust weights. This
 function is used for unit tests.
 */
 RcppExport SEXP test_importance_sample_indel(
@@ -587,10 +589,10 @@ RcppExport SEXP test_importance_sample_indel(
     NumericMatrix pwm(_pwm);
     LoglikType loglik_type = static_cast<LoglikType>(as<int>(_loglik_type));
 
-    ImportanceSampleIndel sampler(mc_param, adj_pwm, mat_d, insertion_len);
+    ImportanceSampleIndel sampler(mc_param, adj_pwm, pwm, mat_d, insertion_len);
     sampler.initialize(score_percentile);
     SampleSequence example = sampler.gen_importance_sample();
-    ScorePair score_pair = sampler.comp_score_pair(pwm, example.sequence, loglik_type);
+    ScorePair score_pair = sampler.comp_score_pair(example.sequence, loglik_type);
     AdjWeights adj_weights = sampler.gen_importance_sample_weights(example.sequence);
     Rcpp::List ret = Rcpp::List::create(
         Rcpp::Named("start_pos") = example.start_pos,

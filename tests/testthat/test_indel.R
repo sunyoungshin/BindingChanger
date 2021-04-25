@@ -22,9 +22,14 @@ test_that("Error: mismatch between theta and the expected score difference.",
               )
               tol <- 1e-4
               expected_score_diff <-
-                R_comp_expected_score_diff(mat_d = mat_d,
-                                           insertion_len = insertion_len,
-                                           theta = result_cpp$theta)
+                R_comp_expected_score_diff(
+                  mat_d = mat_d,
+                  insertion_len = insertion_len,
+                  theta = result_cpp$theta,
+                  pwm = artifacts$pwm,
+                  adj_pwm = artifacts$adj_pwm,
+                  prior = artifacts$prior
+                )
               if (result_cpp$theta < 1 && result_cpp$theta > 0) {
                 expect_equal(expected_score_diff, score_percentile, tolerance = tol)
               } else if (result_cpp$theta == 1) {
@@ -197,8 +202,8 @@ test_that("Error: distribution of the motif scores is not correct.",
                 })
               suppressWarnings({
                 # NOTE: ks.test warns about ties
-                expect_gte(ks.test(score_pairs[1, ], score_pairs[3,])$p.value, 0.05)
-                expect_gte(ks.test(score_pairs[2, ], score_pairs[4,])$p.value, 0.05)
+                expect_gte(ks.test(score_pairs[1,], score_pairs[3, ])$p.value, 0.05)
+                expect_gte(ks.test(score_pairs[2,], score_pairs[4, ])$p.value, 0.05)
               })
             }
           })

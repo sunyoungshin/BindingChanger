@@ -14,6 +14,7 @@ public:
     int insertion_len;
     double theta;
     NumericMatrix adj_pwm;
+    NumericMatrix pwm;
     NumericMatrix mat_d;
     NumericVector cond_norm_const;
     double norm_const;
@@ -22,10 +23,12 @@ public:
         MarkovChainParam mc_param,
         NumericMatrix adj_pwm,
         NumericMatrix mat_d,
+        NumericMatrix pwm,
         int insertion_len) : mc_param(mc_param),
                              insertion_len(insertion_len),
                              theta(0),
                              adj_pwm(adj_pwm),
+                             pwm(pwm),
                              mat_d(mat_d)
     {
         this->validate();
@@ -33,12 +36,14 @@ public:
     PairedImportanceSamplingBase(
         MarkovChainParam mc_param,
         NumericMatrix adj_pwm,
+        NumericMatrix pwm,
         NumericMatrix mat_d,
         int insertion_len,
         double theta) : mc_param(mc_param),
                         insertion_len(insertion_len),
                         theta(theta),
                         adj_pwm(adj_pwm),
+                        pwm(pwm),
                         mat_d(mat_d)
     {
         this->validate();
@@ -50,11 +55,11 @@ public:
     void comp_cond_norm_const();
     virtual SampleSequence gen_importance_sample()=0;
     virtual AdjWeights gen_importance_sample_weights(IntegerVector)=0;
-    virtual ScorePair comp_score_pair(NumericMatrix, IntegerVector, LoglikType)=0;
+    virtual ScorePair comp_score_pair(IntegerVector, LoglikType)=0;
 
 protected:
     double _comp_norm_const(NumericVector);
-    
+
 private:
     void validate();
     virtual NumericVector _comp_cond_norm_const(double)=0;
