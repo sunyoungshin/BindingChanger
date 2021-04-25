@@ -52,7 +52,7 @@ R_comp_norm_const <- function(mat_d, insertion_len, theta) {
 
 #' Compute conditional normalization constant
 R_comp_expected_score_diff <-
-  function(mat_d, insertion_len, theta) {
+  function(mat_d, insertion_len, theta, adj_pwm, pwm, prior) {
     # 1, ..., L-1, [L, ..., L+insertion_len-1], L+insert_len, ..., 2L+insertion_len-2
     motif_len <- nrow(mat_d)
     cond_score_diff <- rep(0, motif_len + insertion_len - 1)
@@ -68,6 +68,9 @@ R_comp_expected_score_diff <-
       cond_prob_mat <- exp(log(submat_d) * theta)
       cond_prob_mat <- cond_prob_mat / apply(cond_prob_mat, 1, sum)
       cond_score_diff[s] <- sum(cond_prob_mat * log(submat_d))
+      prob_diff <- t(apply(adj_pwm, 1, function(x) x-prior))
+      prob_diff[start_idx:end_idx, ] <- 0
+      cond_score_diff[s] <- cond_score_diff[s] + sum(prob_diff * log(pwm))
     }
     return(sum(cond_score_diff * cond_norm_const) / sum(cond_norm_const))
   }

@@ -547,6 +547,13 @@ double ImportanceSampleIndel::comp_expected_score_diff(double theta)
                 cond_score_diff += nume / denom;
             }
         }
+        for (int c = s; c < motif_len + s; ++ c) {
+            if(c < motif_len-1 || c > motif_len + this->insertion_len - 2) {
+                for(int j = 0; j < ImportanceSampleIndel::N_LETTERS; ++ j) {
+                    cond_score_diff += (this->adj_pwm(c-s, j)-this->mc_param.stat_dist[j]) * log(this->pwm(c-s,j));
+                }
+            }
+        }
         expected_score_diff += cond_score_diff * cond_norm_const[s];
     }
     expected_score_diff /= norm_const;
