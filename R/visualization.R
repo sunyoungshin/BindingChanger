@@ -100,7 +100,6 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
   }
   insertion <- indel_info[[1]]$insertion
   m <- indel_info[[1]]$insertion_len
-  #long seq
   long_best_match <- motif_scores$match_pos_long[j1, j2]
   long_strand_sign <- sign(long_best_match)
   seque <- indel_info[[1]]$inserted_sequence
@@ -111,15 +110,12 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
   e1 <- n1 + m + lm - 1
   longer <- seque[s1:e1]
   nlong <- length(longer)
-  #short seq
   short_best_match <- motif_scores$match_pos_short[j1, j2]
   short_strand_sign <- sign(short_best_match)
   s2 <- n1
   e2 <- n1 + m + 1
   shorter <- seque[c(s1:s2, e2:e1)]
   nshort <- length(shorter)
-  # plot_l<-05*(nl+2)
-
   plot.new()
   if (insertion) {
     if (long_strand_sign == 1) {
@@ -129,14 +125,9 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
       rownames(a) <- c("A", "C", "G", "T")
       p <- makemotif(motif, long_strand_sign)
       p_full <- makepfull(p, left, right)
-      # pushViewport(viewport(
-      #   y = unit(.5, "npc") - unit(2, "lines"),
-      #   height = unit(1, "npc") - unit(3, "lines")
-      # ))
-      pushViewport(viewport(y = .125, height = .25))
+      pushViewport(viewport(y = 0.125, height = 0.25))
       motifStack::plotMotifLogo(
         p_full,
-
         yaxis = FALSE,
         xaxis = FALSE,
         xlab = "",
@@ -144,11 +135,12 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
         newpage = FALSE,
         margins = c(2, 2.5, 1.5, 2.5)
       )
-      #add 5'-3' notation
       grid.lines(
         x = c(
-          convertUnit(unit(3, "lines"), "npc", valueOnly = TRUE),
-          1 - convertUnit(unit(2, "lines"), "npc", valueOnly = TRUE)
+          convertUnit(unit(3, "lines"),
+                      "npc", valueOnly = TRUE),
+          1 - convertUnit(unit(2,
+                               "lines"), "npc", valueOnly = TRUE)
         ),
         y = unit(1, "lines"),
         gp = gpar(
@@ -157,30 +149,31 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
           xpd = NA
         ),
         arrow = arrow(
-          length = unit(0.1, "inches"),
+          length = unit(0.1,
+                        "inches"),
           angle = 15,
           ends = "last"
         )
       )
       grid.text(
         "3'",
-        x = unit(1, "npc") - unit(1, "lines"),
-        gp = gpar(col = "blue", cex = 1),
-        y = unit(.5, "lines")
+        x = unit(1, "npc") -
+          unit(1, "lines"),
+        gp = gpar(col = "blue",
+                  cex = 1),
+        y = unit(0.5, "lines")
       )
       grid.text(
         "5'",
         x = unit(2, "lines"),
         gp = gpar(col = "blue", cex = 1),
-        y = unit(.5, "lines")
+        y = unit(0.5,
+                 "lines")
       )
-      # plotMotifLogo(a)
       popViewport()
-      pushViewport(viewport(y = .325, height = .25))
-      #par(mar = c(4, 3, 1.5, 2))
+      pushViewport(viewport(y = 0.325, height = 0.25))
       motifStack::plotMotifLogo(
         a,
-        #paste("insertion=",insertion),
         xaxis = FALSE,
         yaxis = FALSE,
         xlab = "",
@@ -190,19 +183,23 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
       )
       grid.text(
         "3'",
-        x = unit(1, "npc") - unit(1, "lines"),
-        gp = gpar(col = "blue", cex = 1),
-        y = unit(.5, "lines")
+        x = unit(1, "npc") -
+          unit(1, "lines"),
+        gp = gpar(col = "blue",
+                  cex = 1),
+        y = unit(0.5, "lines")
       )
       grid.text(
         "5'",
         x = unit(2, "lines"),
         gp = gpar(col = "blue", cex = 1),
-        y = unit(.5, "lines")
+        y = unit(0.5,
+                 "lines")
       )
       grid.rect(
         just = "center",
-        width = (m) / (nlong + 2),
+        width = (m) / (nlong +
+                         2),
         height = unit(0.6, "npc"),
         gp = gpar(
           col = "blue",
@@ -211,7 +208,6 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
           fill = NA
         )
       )
-
       if (short_strand_sign == 1) {
         a <- makepwm(shorter, short_strand_sign)
         rownames(a) <- c("A", "C", "G", "T")
@@ -220,15 +216,18 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
         left <- short_best_match - s1 + l1
         right <- nlong - left - lm
         if (l1 == 0) {
-          a_full <- cbind(a, rep.col(c(0.25, 0.25, 0.25, 0.25), r1))
-        } else{
-          a_full <-
-            cbind(rep.col(c(0.25, 0.25, 0.25, 0.25), l1), a, rep.col(c(0.25, 0.25, 0.25, 0.25), r1))
+          a_full <- cbind(a, rep.col(c(0.25, 0.25, 0.25,
+                                       0.25), r1))
+        }
+        else {
+          a_full <- cbind(rep.col(c(0.25, 0.25, 0.25,
+                                    0.25), l1), a, rep.col(c(0.25, 0.25, 0.25,
+                                                             0.25), r1))
         }
         p <- makemotif(motif, short_strand_sign)
         p_full <- makepfull(p, left, right)
         popViewport()
-        pushViewport(viewport(y = .575, height = .25))
+        pushViewport(viewport(y = 0.575, height = 0.25))
         motifStack::plotMotifLogo(
           a_full,
           xaxis = FALSE,
@@ -240,19 +239,21 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
         )
         grid.text(
           "3'",
-          x = unit(1, "npc") - unit(1, "lines"),
-          gp = gpar(col = "blue", cex = 1),
-          y = unit(.5, "lines")
+          x = unit(1, "npc") -
+            unit(1, "lines"),
+          gp = gpar(col = "blue",
+                    cex = 1),
+          y = unit(0.5, "lines")
         )
         grid.text(
           "5'",
           x = unit(2, "lines"),
           gp = gpar(col = "blue", cex = 1),
-          y = unit(.5, "lines")
+          y = unit(0.5,
+                   "lines")
         )
-        #grid.rect(x=((nlong-m)/2-0.25)/nlong, width = m/nlong, gp=gpar(col="blue", lty=3, lwd=2, fill=NA))
         popViewport()
-        pushViewport(viewport(y = .825, height = .25))
+        pushViewport(viewport(y = 0.825, height = 0.25))
         motifStack::plotMotifLogo(
           p_full,
           paste(
@@ -267,12 +268,15 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
           xlab = "",
           ylab = "",
           newpage = FALSE,
-          margins = c(2, 2.5, 1.5, 2.5)
+          margins = c(2,
+                      2.5, 1.5, 2.5)
         )
         grid.lines(
           x = c(
-            convertUnit(unit(3, "lines"), "npc", valueOnly = TRUE),
-            1 - convertUnit(unit(2, "lines"), "npc", valueOnly = TRUE)
+            convertUnit(unit(3, "lines"),
+                        "npc", valueOnly = TRUE),
+            1 - convertUnit(unit(2,
+                                 "lines"), "npc", valueOnly = TRUE)
           ),
           y = unit(1, "lines"),
           gp = gpar(
@@ -281,29 +285,35 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
             xpd = NA
           ),
           arrow = arrow(
-            length = unit(0.1, "inches"),
+            length = unit(0.1,
+                          "inches"),
             angle = 15,
             ends = "last"
           )
         )
         grid.text(
           "3'",
-          x = unit(1, "npc") - unit(1, "lines"),
-          gp = gpar(col = "blue", cex = 1),
-          y = unit(.5, "lines")
+          x = unit(1, "npc") -
+            unit(1, "lines"),
+          gp = gpar(col = "blue",
+                    cex = 1),
+          y = unit(0.5, "lines")
         )
         grid.text(
           "5'",
           x = unit(2, "lines"),
           gp = gpar(col = "blue", cex = 1),
-          y = unit(.5, "lines")
+          y = unit(0.5,
+                   "lines")
         )
         popViewport()
-        pushViewport(viewport(y = .375, height = .25))
+        pushViewport(viewport(y = 0.375, height = 0.25))
         grid.lines(
-          x = unit(c((l1 + lm) / (nlong + 2), (lm) / (nlong + 2)
+          x = unit(c((l1 + lm) / (nlong + 2),
+                     (lm) / (nlong + 2)
           ), "npc"),
-          y = unit(c(1.2, 0.75), "npc"),
+          y = unit(c(1.2,
+                     0.75), "npc"),
           gp = gpar(fill = "black"),
           arrow = arrow(
             length = unit(0.05, "inches"),
@@ -312,9 +322,11 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
           )
         )
         grid.lines(
-          x = unit(c((l1 + lm) / (nlong + 2), (lm + m) / (nlong + 2)
+          x = unit(c((l1 + lm) / (nlong + 2),
+                     (lm + m) / (nlong + 2)
           ), "npc"),
-          y = unit(c(1.2, 0.75), "npc"),
+          y = unit(c(1.2,
+                     0.75), "npc"),
           gp = gpar(fill = "black"),
           arrow = arrow(
             length = unit(0.05, "inches"),
@@ -323,24 +335,31 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
           )
         )
         grid.lines(
-          x = unit(c((l1 + lm) / (nlong + 2), (lm + l1) / (nlong + 2)
+          x = unit(c((l1 + lm) / (nlong + 2),
+                     (lm + l1) / (nlong + 2)
           ), "npc"),
-          y = unit(c(2, 1.2), "npc"),
+          y = unit(c(2,
+                     1.2), "npc"),
           gp = gpar(fill = "black")
         )
-      } else{
+      }
+      else {
         a <- makepwm(shorter, short_strand_sign)
-        rownames(a) <- c("A", "C", "G", "T")
+        rownames(a) <- c("A", "C", "G",
+                         "T")
         l1 <- floor(m / 2)
         r1 <- m - l1
         right <-
-          (nlong - m) / 2 - (short_best_match + n1 + 1) + m - r1
+          (nlong - m) / 2 - (short_best_match + n1 + 1) + ceiling(m / 2)
         left <- nlong - lm - right
         if (l1 == 0) {
-          a_full <- cbind(a, rep.col(c(0.25, 0.25, 0.25, 0.25), r1))
-        } else{
-          a_full <-
-            cbind(rep.col(c(0.25, 0.25, 0.25, 0.25), l1), a, rep.col(c(0.25, 0.25, 0.25, 0.25), r1))
+          a_full <- cbind(a, rep.col(c(0.25, 0.25, 0.25,
+                                       0.25), r1))
+        }
+        else {
+          a_full <- cbind(rep.col(c(0.25, 0.25, 0.25,
+                                    0.25), l1), a, rep.col(c(0.25, 0.25, 0.25,
+                                                             0.25), r1))
         }
         p <- makemotif(motif, short_strand_sign)
         p_full <- makepfull(p, left, right)
@@ -351,7 +370,7 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
             "Best match to the mutation sequence m="
           )
         popViewport()
-        pushViewport(viewport(y = .575, height = .25))
+        pushViewport(viewport(y = 0.575, height = 0.25))
         motifStack::plotMotifLogo(
           a_full,
           xaxis = FALSE,
@@ -363,18 +382,21 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
         )
         grid.text(
           "5'",
-          x = unit(1, "npc") - unit(1, "lines"),
-          gp = gpar(col = "blue", cex = 1),
+          x = unit(1, "npc") -
+            unit(1, "lines"),
+          gp = gpar(col = "blue",
+                    cex = 1),
           y = unit(2.5, "lines")
         )
         grid.text(
           "3'",
           x = unit(2, "lines"),
           gp = gpar(col = "blue", cex = 1),
-          y = unit(2.5, "lines")
+          y = unit(2.5,
+                   "lines")
         )
         popViewport()
-        pushViewport(viewport(y = .825, height = .25))
+        pushViewport(viewport(y = 0.825, height = 0.25))
         motifStack::plotMotifLogo(
           p_full,
           paste(
@@ -389,25 +411,30 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
           xlab = "",
           ylab = "",
           newpage = FALSE,
-          margins = c(2, 2.5, 1.5, 2.5)
+          margins = c(2,
+                      2.5, 1.5, 2.5)
         )
         grid.text(
           "5'",
-          x = unit(1, "npc") - unit(1, "lines"),
-          gp = gpar(col = "blue", cex = 1),
+          x = unit(1, "npc") -
+            unit(1, "lines"),
+          gp = gpar(col = "blue",
+                    cex = 1),
           y = unit(2.5, "lines")
         )
         grid.text(
           "3'",
           x = unit(2, "lines"),
           gp = gpar(col = "blue", cex = 1),
-          y = unit(2.5, "lines")
+          y = unit(2.5,
+                   "lines")
         )
-
         grid.lines(
           x = c(
-            convertUnit(unit(3, "lines"), "npc", valueOnly = TRUE),
-            1 - convertUnit(unit(2, "lines"), "npc", valueOnly = TRUE)
+            convertUnit(unit(3, "lines"),
+                        "npc", valueOnly = TRUE),
+            1 - convertUnit(unit(2,
+                                 "lines"), "npc", valueOnly = TRUE)
           ),
           y = unit(1, "lines"),
           gp = gpar(
@@ -416,18 +443,20 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
             xpd = NA
           ),
           arrow = arrow(
-            length = unit(0.1, "inches"),
+            length = unit(0.1,
+                          "inches"),
             angle = 15,
             ends = "first"
           )
         )
-
         popViewport()
-        pushViewport(viewport(y = .325, height = .25))
+        pushViewport(viewport(y = 0.325, height = 0.25))
         grid.lines(
-          x = unit(c((l1 + lm) / (nlong + 2), (lm) / (nlong + 2)
+          x = unit(c((l1 + lm) / (nlong + 2),
+                     (lm) / (nlong + 2)
           ), "npc"),
-          y = unit(c(1.2, 0.75), "npc"),
+          y = unit(c(1.2,
+                     0.75), "npc"),
           gp = gpar(fill = "black"),
           arrow = arrow(
             length = unit(0.05, "inches"),
@@ -436,9 +465,11 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
           )
         )
         grid.lines(
-          x = unit(c((l1 + lm) / (nlong + 2), (lm + m) / (nlong + 2)
+          x = unit(c((l1 + lm) / (nlong + 2),
+                     (lm + m) / (nlong + 2)
           ), "npc"),
-          y = unit(c(1.2, 0.75), "npc"),
+          y = unit(c(1.2,
+                     0.75), "npc"),
           gp = gpar(fill = "black"),
           arrow = arrow(
             length = unit(0.05, "inches"),
@@ -447,18 +478,22 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
           )
         )
         grid.lines(
-          x = unit(c((l1 + lm) / (nlong + 2), (lm + l1) / (nlong + 2)
+          x = unit(c((l1 + lm) / (nlong + 2),
+                     (lm + l1) / (nlong + 2)
           ), "npc"),
-          y = unit(c(2, 1.2), "npc"),
+          y = unit(c(2,
+                     1.2), "npc"),
           gp = gpar(fill = "black")
         )
       }
-    } else if (long_strand_sign == -1) {
-      #best match is negative
-      right <- (nlong - m) / 2 - (long_best_match + n1 + 1)
+    }
+    else if (long_strand_sign == -1) {
+      right <- (nlong - m) / 2 - (long_best_match + n1 +
+                                    1)
       left <- nlong - lm - right
       a <- makepwm(longer, long_strand_sign)
-      rownames(a) <- c("A", "C", "G", "T")
+      rownames(a) <- c("A", "C", "G",
+                       "T")
       p <- makemotif(motif, long_strand_sign)
       p_full <- makepfull(p, left, right)
       title <-
@@ -467,11 +502,7 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
           "Best match to the mutation sequence m=",
           "Best match to the reference sequence m="
         )
-      # pushViewport(viewport(
-      #   y = unit(.5, "npc") - unit(2, "lines"),
-      #   height = unit(1, "npc") - unit(3, "lines")
-      # ))
-      pushViewport(viewport(y = .125, height = .25))
+      pushViewport(viewport(y = 0.125, height = 0.25))
       motifStack::plotMotifLogo(
         p_full,
         yaxis = FALSE,
@@ -483,20 +514,25 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
       )
       grid.text(
         "5'",
-        x = unit(1, "npc") - unit(1, "lines"),
-        gp = gpar(col = "blue", cex = 1),
+        x = unit(1, "npc") -
+          unit(1, "lines"),
+        gp = gpar(col = "blue",
+                  cex = 1),
         y = unit(2.5, "lines")
       )
       grid.text(
         "3'",
         x = unit(2, "lines"),
         gp = gpar(col = "blue", cex = 1),
-        y = unit(2.5, "lines")
+        y = unit(2.5,
+                 "lines")
       )
       grid.lines(
         x = c(
-          convertUnit(unit(3, "lines"), "npc", valueOnly = TRUE),
-          1 - convertUnit(unit(2, "lines"), "npc", valueOnly = TRUE)
+          convertUnit(unit(3, "lines"),
+                      "npc", valueOnly = TRUE),
+          1 - convertUnit(unit(2,
+                               "lines"), "npc", valueOnly = TRUE)
         ),
         y = unit(1, "lines"),
         gp = gpar(
@@ -505,15 +541,14 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
           xpd = NA
         ),
         arrow = arrow(
-          length = unit(0.1, "inches"),
+          length = unit(0.1,
+                        "inches"),
           angle = 15,
           ends = "first"
         )
       )
-      # motifStack::plotMotifLogo(a)
       popViewport()
-      pushViewport(viewport(y = .325, height = .25))
-      #par(mar = c(4, 3, 1.5, 2))
+      pushViewport(viewport(y = 0.325, height = 0.25))
       motifStack::plotMotifLogo(
         a,
         xaxis = FALSE,
@@ -525,19 +560,23 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
       )
       grid.text(
         "5'",
-        x = unit(1, "npc") - unit(1, "lines"),
-        gp = gpar(col = "blue", cex = 1),
+        x = unit(1, "npc") -
+          unit(1, "lines"),
+        gp = gpar(col = "blue",
+                  cex = 1),
         y = unit(2.5, "lines")
       )
       grid.text(
         "3'",
         x = unit(2, "lines"),
         gp = gpar(col = "blue", cex = 1),
-        y = unit(2.5, "lines")
+        y = unit(2.5,
+                 "lines")
       )
       grid.rect(
         just = "center",
-        width = (m) / (nlong + 2),
+        width = (m) / (nlong +
+                         2),
         height = unit(0.6, "npc"),
         gp = gpar(
           col = "blue",
@@ -546,24 +585,27 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
           fill = NA
         )
       )
-      #grid.rect(x=(0.25+0.5*m+(nlong-m)/2)/nlong, width = m/nlong, gp=gpar(col="blue", lty=3, lwd=2, fill=NA))
       if (short_strand_sign == 1) {
         a <- makepwm(shorter, short_strand_sign)
-        rownames(a) <- c("A", "C", "G", "T")
+        rownames(a) <- c("A", "C", "G",
+                         "T")
         l1 <- floor(m / 2)
         r1 <- m - l1
         left <- short_best_match - s1 + l1
         right <- nlong - left - lm
         if (l1 == 0) {
-          a_full <- cbind(a, rep.col(c(0.25, 0.25, 0.25, 0.25), r1))
-        } else{
-          a_full <-
-            cbind(rep.col(c(0.25, 0.25, 0.25, 0.25), l1), a, rep.col(c(0.25, 0.25, 0.25, 0.25), r1))
+          a_full <- cbind(a, rep.col(c(0.25, 0.25, 0.25,
+                                       0.25), r1))
+        }
+        else {
+          a_full <- cbind(rep.col(c(0.25, 0.25, 0.25,
+                                    0.25), l1), a, rep.col(c(0.25, 0.25, 0.25,
+                                                             0.25), r1))
         }
         p <- makemotif(motif, short_strand_sign)
         p_full <- makepfull(p, left, right)
         popViewport()
-        pushViewport(viewport(y = .575, height = .25))
+        pushViewport(viewport(y = 0.575, height = 0.25))
         motifStack::plotMotifLogo(
           a_full,
           xaxis = FALSE,
@@ -575,18 +617,21 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
         )
         grid.text(
           "3'",
-          x = unit(1, "npc") - unit(1, "lines"),
-          gp = gpar(col = "blue", cex = 1),
-          y = unit(.5, "lines")
+          x = unit(1, "npc") -
+            unit(1, "lines"),
+          gp = gpar(col = "blue",
+                    cex = 1),
+          y = unit(0.5, "lines")
         )
         grid.text(
           "5'",
           x = unit(2, "lines"),
           gp = gpar(col = "blue", cex = 1),
-          y = unit(.5, "lines")
+          y = unit(0.5,
+                   "lines")
         )
         popViewport()
-        pushViewport(viewport(y = .825, height = .25))
+        pushViewport(viewport(y = 0.825, height = 0.25))
         motifStack::plotMotifLogo(
           p_full,
           paste(
@@ -601,12 +646,15 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
           xlab = "",
           ylab = "",
           newpage = FALSE,
-          margins = c(2, 2.5, 1.5, 2.5)
+          margins = c(2,
+                      2.5, 1.5, 2.5)
         )
         grid.lines(
           x = c(
-            convertUnit(unit(3, "lines"), "npc", valueOnly = TRUE),
-            1 - convertUnit(unit(2, "lines"), "npc", valueOnly = TRUE)
+            convertUnit(unit(3, "lines"),
+                        "npc", valueOnly = TRUE),
+            1 - convertUnit(unit(2,
+                                 "lines"), "npc", valueOnly = TRUE)
           ),
           y = unit(1, "lines"),
           gp = gpar(
@@ -615,30 +663,35 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
             xpd = NA
           ),
           arrow = arrow(
-            length = unit(0.1, "inches"),
+            length = unit(0.1,
+                          "inches"),
             angle = 15,
             ends = "last"
           )
         )
         grid.text(
           "3'",
-          x = unit(1, "npc") - unit(1, "lines"),
-          gp = gpar(col = "blue", cex = 1),
-          y = unit(.5, "lines")
+          x = unit(1, "npc") -
+            unit(1, "lines"),
+          gp = gpar(col = "blue",
+                    cex = 1),
+          y = unit(0.5, "lines")
         )
         grid.text(
           "5'",
           x = unit(2, "lines"),
           gp = gpar(col = "blue", cex = 1),
-          y = unit(.5, "lines")
+          y = unit(0.5,
+                   "lines")
         )
-
         popViewport()
-        pushViewport(viewport(y = .325, height = .25))
+        pushViewport(viewport(y = 0.325, height = 0.25))
         grid.lines(
-          x = unit(c((l1 + lm) / (nlong + 2), (lm) / (nlong + 2)
+          x = unit(c((l1 + lm) / (nlong + 2),
+                     (lm) / (nlong + 2)
           ), "npc"),
-          y = unit(c(1.2, 0.75), "npc"),
+          y = unit(c(1.2,
+                     0.75), "npc"),
           gp = gpar(fill = "black"),
           arrow = arrow(
             length = unit(0.05, "inches"),
@@ -647,9 +700,11 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
           )
         )
         grid.lines(
-          x = unit(c((l1 + lm) / (nlong + 2), (lm + m) / (nlong + 2)
+          x = unit(c((l1 + lm) / (nlong + 2),
+                     (lm + m) / (nlong + 2)
           ), "npc"),
-          y = unit(c(1.2, 0.75), "npc"),
+          y = unit(c(1.2,
+                     0.75), "npc"),
           gp = gpar(fill = "black"),
           arrow = arrow(
             length = unit(0.05, "inches"),
@@ -658,25 +713,31 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
           )
         )
         grid.lines(
-          x = unit(c((l1 + lm) / (nlong + 2), (lm + l1) / (nlong + 2)
+          x = unit(c((l1 + lm) / (nlong + 2),
+                     (lm + l1) / (nlong + 2)
           ), "npc"),
-          y = unit(c(2, 1.2), "npc"),
+          y = unit(c(2,
+                     1.2), "npc"),
           gp = gpar(fill = "black")
         )
-
-      } else{
+      }
+      else {
         a <- makepwm(shorter, short_strand_sign)
-        rownames(a) <- c("A", "C", "G", "T")
+        rownames(a) <- c("A", "C", "G",
+                         "T")
         l1 <- floor(m / 2)
         r1 <- m - l1
         right <-
-          (nlong - m) / 2 - (short_best_match + n1 + 1) + m - r1
+          (nlong - m) / 2 - (short_best_match + n1 + 1) + ceiling(m / 2)
         left <- nlong - lm - right
         if (l1 == 0) {
-          a_full <- cbind(a, rep.col(c(0.25, 0.25, 0.25, 0.25), r1))
-        } else{
-          a_full <-
-            cbind(rep.col(c(0.25, 0.25, 0.25, 0.25), l1), a, rep.col(c(0.25, 0.25, 0.25, 0.25), r1))
+          a_full <- cbind(a, rep.col(c(0.25, 0.25, 0.25,
+                                       0.25), r1))
+        }
+        else {
+          a_full <- cbind(rep.col(c(0.25, 0.25, 0.25,
+                                    0.25), l1), a, rep.col(c(0.25, 0.25, 0.25,
+                                                             0.25), r1))
         }
         p <- makemotif(motif, short_strand_sign)
         p_full <- makepfull(p, left, right)
@@ -687,7 +748,7 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
             "Best match to the mutation sequence m="
           )
         popViewport()
-        pushViewport(viewport(y = .575, height = .25))
+        pushViewport(viewport(y = 0.575, height = 0.25))
         motifStack::plotMotifLogo(
           a_full,
           xaxis = FALSE,
@@ -699,19 +760,21 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
         )
         grid.text(
           "5'",
-          x = unit(1, "npc") - unit(1, "lines"),
-          gp = gpar(col = "blue", cex = 1),
+          x = unit(1, "npc") -
+            unit(1, "lines"),
+          gp = gpar(col = "blue",
+                    cex = 1),
           y = unit(2.5, "lines")
         )
         grid.text(
           "3'",
           x = unit(2, "lines"),
           gp = gpar(col = "blue", cex = 1),
-          y = unit(2.5, "lines")
+          y = unit(2.5,
+                   "lines")
         )
         popViewport()
-        pushViewport(viewport(y = .825, height = .25))
-        #par(mar = c(4, 3, 1.5, 2))
+        pushViewport(viewport(y = 0.825, height = 0.25))
         motifStack::plotMotifLogo(
           p_full,
           paste(
@@ -726,24 +789,30 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
           xlab = "",
           ylab = "",
           newpage = FALSE,
-          margins = c(2, 2.5, 1.5, 2.5)
+          margins = c(2,
+                      2.5, 1.5, 2.5)
         )
         grid.text(
           "5'",
-          x = unit(1, "npc") - unit(1, "lines"),
-          gp = gpar(col = "blue", cex = 1),
+          x = unit(1, "npc") -
+            unit(1, "lines"),
+          gp = gpar(col = "blue",
+                    cex = 1),
           y = unit(2.5, "lines")
         )
         grid.text(
           "3'",
           x = unit(2, "lines"),
           gp = gpar(col = "blue", cex = 1),
-          y = unit(2.5, "lines")
+          y = unit(2.5,
+                   "lines")
         )
         grid.lines(
           x = c(
-            convertUnit(unit(3, "lines"), "npc", valueOnly = TRUE),
-            1 - convertUnit(unit(2, "lines"), "npc", valueOnly = TRUE)
+            convertUnit(unit(3, "lines"),
+                        "npc", valueOnly = TRUE),
+            1 - convertUnit(unit(2,
+                                 "lines"), "npc", valueOnly = TRUE)
           ),
           y = unit(1, "lines"),
           gp = gpar(
@@ -752,17 +821,20 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
             xpd = NA
           ),
           arrow = arrow(
-            length = unit(0.1, "inches"),
+            length = unit(0.1,
+                          "inches"),
             angle = 15,
             ends = "first"
           )
         )
         popViewport()
-        pushViewport(viewport(y = .325, height = .25))
+        pushViewport(viewport(y = 0.325, height = 0.25))
         grid.lines(
-          x = unit(c((l1 + lm) / (nlong + 2), (lm) / (nlong + 2)
+          x = unit(c((l1 + lm) / (nlong + 2),
+                     (lm) / (nlong + 2)
           ), "npc"),
-          y = unit(c(1.2, 0.75), "npc"),
+          y = unit(c(1.2,
+                     0.75), "npc"),
           gp = gpar(fill = "black"),
           arrow = arrow(
             length = unit(0.05, "inches"),
@@ -771,9 +843,11 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
           )
         )
         grid.lines(
-          x = unit(c((l1 + lm) / (nlong + 2), (lm + m) / (nlong + 2)
+          x = unit(c((l1 + lm) / (nlong + 2),
+                     (lm + m) / (nlong + 2)
           ), "npc"),
-          y = unit(c(1.2, 0.75), "npc"),
+          y = unit(c(1.2,
+                     0.75), "npc"),
           gp = gpar(fill = "black"),
           arrow = arrow(
             length = unit(0.05, "inches"),
@@ -782,24 +856,26 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
           )
         )
         grid.lines(
-          x = unit(c((l1 + lm) / (nlong + 2), (lm + l1) / (nlong + 2)
+          x = unit(c((l1 + lm) / (nlong + 2),
+                     (lm + l1) / (nlong + 2)
           ), "npc"),
-          y = unit(c(2, 1.2), "npc"),
+          y = unit(c(2,
+                     1.2), "npc"),
           gp = gpar(fill = "black")
         )
-
       }
     }
-  } else if (insertion == 0) {
+  }
+  else if (insertion == 0) {
     if (long_strand_sign == 1) {
       left <- long_best_match - s1
       right <- nlong - left - lm
       a <- makepwm(longer, long_strand_sign)
-      rownames(a) <- c("A", "C", "G", "T")
+      rownames(a) <- c("A", "C", "G",
+                       "T")
       p <- makemotif(motif, long_strand_sign)
       p_full <- makepfull(p, left, right)
-      ##
-      pushViewport(viewport(y = .825, height = .25))
+      pushViewport(viewport(y = 0.825, height = 0.25))
       motifStack::plotMotifLogo(
         p_full,
         paste(
@@ -816,11 +892,12 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
         newpage = FALSE,
         margins = c(2, 2.5, 1.5, 2.5)
       )
-      #add 5'-3' notation
       grid.lines(
         x = c(
-          convertUnit(unit(3, "lines"), "npc", valueOnly = TRUE),
-          1 - convertUnit(unit(2, "lines"), "npc", valueOnly = TRUE)
+          convertUnit(unit(3, "lines"),
+                      "npc", valueOnly = TRUE),
+          1 - convertUnit(unit(2,
+                               "lines"), "npc", valueOnly = TRUE)
         ),
         y = unit(1, "lines"),
         gp = gpar(
@@ -829,30 +906,31 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
           xpd = NA
         ),
         arrow = arrow(
-          length = unit(0.1, "inches"),
+          length = unit(0.1,
+                        "inches"),
           angle = 15,
           ends = "last"
         )
       )
       grid.text(
         "3'",
-        x = unit(1, "npc") - unit(1, "lines"),
-        gp = gpar(col = "blue", cex = 1),
-        y = unit(.5, "lines")
+        x = unit(1, "npc") -
+          unit(1, "lines"),
+        gp = gpar(col = "blue",
+                  cex = 1),
+        y = unit(0.5, "lines")
       )
       grid.text(
         "5'",
         x = unit(2, "lines"),
         gp = gpar(col = "blue", cex = 1),
-        y = unit(.5, "lines")
+        y = unit(0.5,
+                 "lines")
       )
-      # motifStack::plotMotifLogo(a)
       popViewport()
-      pushViewport(viewport(y = .575, height = .25))
-      #par(mar = c(4, 3, 1.5, 2))
+      pushViewport(viewport(y = 0.575, height = 0.25))
       motifStack::plotMotifLogo(
         a,
-        #paste("insertion=",insertion),
         xaxis = FALSE,
         yaxis = FALSE,
         xlab = "",
@@ -862,19 +940,23 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
       )
       grid.text(
         "3'",
-        x = unit(1, "npc") - unit(1, "lines"),
-        gp = gpar(col = "blue", cex = 1),
-        y = unit(.5, "lines")
+        x = unit(1, "npc") -
+          unit(1, "lines"),
+        gp = gpar(col = "blue",
+                  cex = 1),
+        y = unit(0.5, "lines")
       )
       grid.text(
         "5'",
         x = unit(2, "lines"),
         gp = gpar(col = "blue", cex = 1),
-        y = unit(.5, "lines")
+        y = unit(0.5,
+                 "lines")
       )
       grid.rect(
         just = "center",
-        width = (m) / (nlong + 2),
+        width = (m) / (nlong +
+                         2),
         height = unit(0.6, "npc"),
         gp = gpar(
           col = "blue",
@@ -883,22 +965,18 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
           fill = NA
         )
       )
-
-      #grid.rect(x=(0.5*(m)+(nlong-m)/2)/nlong, width = (m)/nlong, gp=gpar(col="blue", lty=3, lwd=2, fill=NA))
       if (short_strand_sign == 1) {
         left <- short_best_match - s1
         right <- nlong - left - lm
         a <- makepwm(shorter, short_strand_sign)
-        rownames(a) <- c("A", "C", "G", "T")
-        a_full <-
-          cbind(a[, 1:(lm - 1)], rep.col(c(0.25, 0.25, 0.25, 0.25), m), a[, lm:(2 *
-                                                                                  lm - 2)])
-        #a_full<-cbind(a,rep.col(c(0.25,0.25,0.25,0.25),m))
+        rownames(a) <- c("A", "C", "G",
+                         "T")
+        a_full <- cbind(a[, 1:(lm - 1)], rep.col(c(0.25,
+                                                   0.25, 0.25, 0.25), m), a[, lm:(2 * lm - 2)])
         p <- makemotif(motif, short_strand_sign)
         p_full <- makepfull(p, left, right)
-        #title<-ifelse(insertion==1,"Best match to the reference sequence m=","Best match to the mutation sequence m=")
         popViewport()
-        pushViewport(viewport(y = .325, height = .25))
+        pushViewport(viewport(y = 0.325, height = 0.25))
         motifStack::plotMotifLogo(
           a_full,
           xaxis = FALSE,
@@ -910,19 +988,21 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
         )
         grid.text(
           "3'",
-          x = unit(1, "npc") - unit(1, "lines"),
-          gp = gpar(col = "blue", cex = 1),
-          y = unit(.5, "lines")
+          x = unit(1, "npc") -
+            unit(1, "lines"),
+          gp = gpar(col = "blue",
+                    cex = 1),
+          y = unit(0.5, "lines")
         )
         grid.text(
           "5'",
           x = unit(2, "lines"),
           gp = gpar(col = "blue", cex = 1),
-          y = unit(.5, "lines")
+          y = unit(0.5,
+                   "lines")
         )
-        #grid.rect(x=((nlong-m)/2-0.25)/nlong, width = m/nlong, gp=gpar(col="blue", lty=3, lwd=2, fill=NA))
         popViewport()
-        pushViewport(viewport(y = .125, height = .25))
+        pushViewport(viewport(y = 0.125, height = 0.25))
         motifStack::plotMotifLogo(
           p_full,
           yaxis = FALSE,
@@ -934,8 +1014,10 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
         )
         grid.lines(
           x = c(
-            convertUnit(unit(3, "lines"), "npc", valueOnly = TRUE),
-            1 - convertUnit(unit(2, "lines"), "npc", valueOnly = TRUE)
+            convertUnit(unit(3, "lines"),
+                        "npc", valueOnly = TRUE),
+            1 - convertUnit(unit(2,
+                                 "lines"), "npc", valueOnly = TRUE)
           ),
           y = unit(1, "lines"),
           gp = gpar(
@@ -944,55 +1026,63 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
             xpd = NA
           ),
           arrow = arrow(
-            length = unit(0.1, "inches"),
+            length = unit(0.1,
+                          "inches"),
             angle = 15,
             ends = "last"
           )
         )
         grid.text(
           "3'",
-          x = unit(1, "npc") - unit(1, "lines"),
-          gp = gpar(col = "blue", cex = 1),
-          y = unit(.5, "lines")
+          x = unit(1, "npc") -
+            unit(1, "lines"),
+          gp = gpar(col = "blue",
+                    cex = 1),
+          y = unit(0.5, "lines")
         )
         grid.text(
           "5'",
           x = unit(2, "lines"),
           gp = gpar(col = "blue", cex = 1),
-          y = unit(.5, "lines")
+          y = unit(0.5,
+                   "lines")
         )
         popViewport()
-        pushViewport(viewport(y = .125, height = .25))
+        pushViewport(viewport(y = 0.125, height = 0.25))
         grid.lines(
-          x = unit(c(lm / (nlong + 2), lm / (nlong + 2)), "npc"),
+          x = unit(c(lm / (nlong + 2), lm / (nlong +
+                                               2)), "npc"),
           y = unit(c(1.2, 0.75), "npc"),
           gp = gpar(fill = "black"),
           arrow = arrow(
-            length = unit(0.05, "inches"),
+            length = unit(0.05,
+                          "inches"),
             ends = "last",
             type = "closed"
           )
         )
         grid.lines(
-          x = unit(c((lm + m) / (nlong + 2), lm / (nlong + 2)), "npc"),
+          x = unit(c((lm + m) / (nlong + 2), lm / (nlong +
+                                                     2)), "npc"),
           y = unit(c(1.2, 0.75), "npc"),
           gp = gpar(fill = "black"),
           arrow = arrow(
-            length = unit(0.05, "inches"),
+            length = unit(0.05,
+                          "inches"),
             ends = "last",
             type = "closed"
           )
         )
-
-      } else{
-        right <- (nlong - m) / 2 - (short_best_match + n1 + 1) + m
+      }
+      else {
+        right <- (nlong - m) / 2 - (short_best_match +
+                                      n1 + 1) + m
         left <- nlong - lm - right
-
         a <- makepwm(shorter, short_strand_sign)
-        rownames(a) <- c("A", "C", "G", "T")
-        a_full <-
-          cbind(a[, 1:(lm - 1)], rep.col(c(0.25, 0.25, 0.25, 0.25), m), a[, lm:(2 *
-                                                                                  lm - 2)])
+        rownames(a) <- c("A", "C", "G",
+                         "T")
+        a_full <- cbind(a[, 1:(lm - 1)], rep.col(c(0.25,
+                                                   0.25, 0.25, 0.25), m), a[, lm:(2 * lm - 2)])
         p <- makemotif(motif, short_strand_sign)
         p_full <- makepfull(p, left, right)
         title <-
@@ -1002,7 +1092,7 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
             "Best match to the mutation sequence m="
           )
         popViewport()
-        pushViewport(viewport(y = .325, height = .25))
+        pushViewport(viewport(y = 0.325, height = 0.25))
         motifStack::plotMotifLogo(
           a_full,
           xaxis = FALSE,
@@ -1014,19 +1104,21 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
         )
         grid.text(
           "5'",
-          x = unit(1, "npc") - unit(1, "lines"),
-          gp = gpar(col = "blue", cex = 1),
+          x = unit(1, "npc") -
+            unit(1, "lines"),
+          gp = gpar(col = "blue",
+                    cex = 1),
           y = unit(2.5, "lines")
         )
         grid.text(
           "3'",
           x = unit(2, "lines"),
           gp = gpar(col = "blue", cex = 1),
-          y = unit(2.5, "lines")
+          y = unit(2.5,
+                   "lines")
         )
         popViewport()
-        pushViewport(viewport(y = .125, height = .25))
-        #par(mar = c(4, 3, 1.5, 2))
+        pushViewport(viewport(y = 0.125, height = 0.25))
         motifStack::plotMotifLogo(
           p_full,
           yaxis = FALSE,
@@ -1038,21 +1130,25 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
         )
         grid.text(
           "5'",
-          x = unit(1, "npc") - unit(1, "lines"),
-          gp = gpar(col = "blue", cex = 1),
+          x = unit(1, "npc") -
+            unit(1, "lines"),
+          gp = gpar(col = "blue",
+                    cex = 1),
           y = unit(2.5, "lines")
         )
         grid.text(
           "3'",
           x = unit(2, "lines"),
           gp = gpar(col = "blue", cex = 1),
-          y = unit(2.5, "lines")
+          y = unit(2.5,
+                   "lines")
         )
-
         grid.lines(
           x = c(
-            convertUnit(unit(3, "lines"), "npc", valueOnly = TRUE),
-            1 - convertUnit(unit(2, "lines"), "npc", valueOnly = TRUE)
+            convertUnit(unit(3, "lines"),
+                        "npc", valueOnly = TRUE),
+            1 - convertUnit(unit(2,
+                                 "lines"), "npc", valueOnly = TRUE)
           ),
           y = unit(1, "lines"),
           gp = gpar(
@@ -1061,41 +1157,47 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
             xpd = NA
           ),
           arrow = arrow(
-            length = unit(0.1, "inches"),
+            length = unit(0.1,
+                          "inches"),
             angle = 15,
             ends = "first"
           )
         )
-
         popViewport()
-        pushViewport(viewport(y = .125, height = .25))
+        pushViewport(viewport(y = 0.125, height = 0.25))
         grid.lines(
-          x = unit(c(lm / (nlong + 2), lm / (nlong + 2)), "npc"),
+          x = unit(c(lm / (nlong + 2), lm / (nlong +
+                                               2)), "npc"),
           y = unit(c(1.2, 0.75), "npc"),
           gp = gpar(fill = "black"),
           arrow = arrow(
-            length = unit(0.05, "inches"),
+            length = unit(0.05,
+                          "inches"),
             ends = "last",
             type = "closed"
           )
         )
         grid.lines(
-          x = unit(c((lm + m) / (nlong + 2), lm / (nlong + 2)), "npc"),
+          x = unit(c((lm + m) / (nlong + 2), lm / (nlong +
+                                                     2)), "npc"),
           y = unit(c(1.2, 0.75), "npc"),
           gp = gpar(fill = "black"),
           arrow = arrow(
-            length = unit(0.05, "inches"),
+            length = unit(0.05,
+                          "inches"),
             ends = "last",
             type = "closed"
           )
         )
       }
-    } else if (long_strand_sign == -1) {
-      #best match is negative
-      right <- (nlong - m) / 2 - (long_best_match + n1 + 1)
+    }
+    else if (long_strand_sign == -1) {
+      right <- (nlong - m) / 2 - (long_best_match + n1 +
+                                    1)
       left <- nlong - lm - right
       a <- makepwm(longer, long_strand_sign)
-      rownames(a) <- c("A", "C", "G", "T")
+      rownames(a) <- c("A", "C", "G",
+                       "T")
       p <- makemotif(motif, long_strand_sign)
       p_full <- makepfull(p, left, right)
       title <-
@@ -1104,7 +1206,7 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
           "Best match to the mutation sequence m=",
           "Best match to the reference sequence m="
         )
-      pushViewport(viewport(y = .825, height = .25))
+      pushViewport(viewport(y = 0.825, height = 0.25))
       motifStack::plotMotifLogo(
         p_full,
         paste(
@@ -1123,20 +1225,25 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
       )
       grid.text(
         "5'",
-        x = unit(1, "npc") - unit(1, "lines"),
-        gp = gpar(col = "blue", cex = 1),
+        x = unit(1, "npc") -
+          unit(1, "lines"),
+        gp = gpar(col = "blue",
+                  cex = 1),
         y = unit(2.5, "lines")
       )
       grid.text(
         "3'",
         x = unit(2, "lines"),
         gp = gpar(col = "blue", cex = 1),
-        y = unit(2.5, "lines")
+        y = unit(2.5,
+                 "lines")
       )
       grid.lines(
         x = c(
-          convertUnit(unit(3, "lines"), "npc", valueOnly = TRUE),
-          1 - convertUnit(unit(2, "lines"), "npc", valueOnly = TRUE)
+          convertUnit(unit(3, "lines"),
+                      "npc", valueOnly = TRUE),
+          1 - convertUnit(unit(2,
+                               "lines"), "npc", valueOnly = TRUE)
         ),
         y = unit(1, "lines"),
         gp = gpar(
@@ -1145,15 +1252,14 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
           xpd = NA
         ),
         arrow = arrow(
-          length = unit(0.1, "inches"),
+          length = unit(0.1,
+                        "inches"),
           angle = 15,
           ends = "first"
         )
       )
-      # motifStack::plotMotifLogo(a)
       popViewport()
-      pushViewport(viewport(y = .575, height = .25))
-      #par(mar = c(4, 3, 1.5, 2))
+      pushViewport(viewport(y = 0.575, height = 0.25))
       motifStack::plotMotifLogo(
         a,
         font = "mono,Courier",
@@ -1162,23 +1268,28 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
         xlab = "",
         ylab = "(-)",
         newpage = FALSE,
-        margins = c(2, 2.5, 1.5, 2.5)
+        margins = c(2,
+                    2.5, 1.5, 2.5)
       )
       grid.text(
         "5'",
-        x = unit(1, "npc") - unit(1, "lines"),
-        gp = gpar(col = "blue", cex = 1),
+        x = unit(1, "npc") -
+          unit(1, "lines"),
+        gp = gpar(col = "blue",
+                  cex = 1),
         y = unit(2.5, "lines")
       )
       grid.text(
         "3'",
         x = unit(2, "lines"),
         gp = gpar(col = "blue", cex = 1),
-        y = unit(2.5, "lines")
+        y = unit(2.5,
+                 "lines")
       )
       grid.rect(
         just = "center",
-        width = (m) / (nlong + 2),
+        width = (m) / (nlong +
+                         2),
         height = unit(0.6, "npc"),
         gp = gpar(
           col = "blue",
@@ -1187,18 +1298,18 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
           fill = NA
         )
       )
-      #grid.rect(x=(0.25+0.5*m+(nlong-m)/2)/nlong, width = m/nlong, gp=gpar(col="blue", lty=3, lwd=2, fill=NA))
       if (short_strand_sign == 1) {
         left <- short_best_match - s1
         right <- nlong - left - lm
         a <- makepwm(shorter, short_strand_sign)
-        rownames(a) <- c("A", "C", "G", "T")
-        a_full <-
-          cbind(a[, 1:(lm - 1)], rep.col(c(0.25, 0.25, 0.25, 0.25), m), a[, lm:(2 *
-                                                                                  lm - 2)])
+        rownames(a) <- c("A", "C", "G",
+                         "T")
+        a_full <- cbind(a[, 1:(lm - 1)], rep.col(c(0.25,
+                                                   0.25, 0.25, 0.25), m), a[, lm:(2 * lm - 2)])
         p <- makemotif(motif, short_strand_sign)
-        p_full <-
-          cbind(rep.col(c(0.25, 0.25, 0.25, 0.25), left), p, rep.col(c(0.25, 0.25, 0.25, 0.25), right))
+        p_full <- cbind(rep.col(c(0.25, 0.25, 0.25, 0.25),
+                                left), p, rep.col(c(0.25, 0.25, 0.25, 0.25),
+                                                  right))
         title <-
           ifelse(
             insertion,
@@ -1206,7 +1317,7 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
             "Best match to the mutation sequence m="
           )
         popViewport()
-        pushViewport(viewport(y = .325, height = .25))
+        pushViewport(viewport(y = 0.325, height = 0.25))
         motifStack::plotMotifLogo(
           a_full,
           font = "mono,Courier",
@@ -1215,23 +1326,26 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
           xlab = "",
           ylab = "(+)",
           newpage = FALSE,
-          margins = c(2, 2.5, 1.5, 2.5)
+          margins = c(2,
+                      2.5, 1.5, 2.5)
         )
         grid.text(
           "3'",
-          x = unit(1, "npc") - unit(1, "lines"),
-          gp = gpar(col = "blue", cex = 1),
-          y = unit(.5, "lines")
+          x = unit(1, "npc") -
+            unit(1, "lines"),
+          gp = gpar(col = "blue",
+                    cex = 1),
+          y = unit(0.5, "lines")
         )
         grid.text(
           "5'",
           x = unit(2, "lines"),
           gp = gpar(col = "blue", cex = 1),
-          y = unit(.5, "lines")
+          y = unit(0.5,
+                   "lines")
         )
-        # grid.rect(x=((nlong-m)/2)/nlong, width = m/nlong, gp=gpar(col="blue", lty=3, lwd=2, fill=NA))
         popViewport()
-        pushViewport(viewport(y = .125, height = .25))
+        pushViewport(viewport(y = 0.125, height = 0.25))
         motifStack::plotMotifLogo(
           p_full,
           yaxis = FALSE,
@@ -1243,8 +1357,10 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
         )
         grid.lines(
           x = c(
-            convertUnit(unit(3, "lines"), "npc", valueOnly = TRUE),
-            1 - convertUnit(unit(2, "lines"), "npc", valueOnly = TRUE)
+            convertUnit(unit(3, "lines"),
+                        "npc", valueOnly = TRUE),
+            1 - convertUnit(unit(2,
+                                 "lines"), "npc", valueOnly = TRUE)
           ),
           y = unit(1, "lines"),
           gp = gpar(
@@ -1253,56 +1369,63 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
             xpd = NA
           ),
           arrow = arrow(
-            length = unit(0.1, "inches"),
+            length = unit(0.1,
+                          "inches"),
             angle = 15,
             ends = "last"
           )
         )
         grid.text(
           "3'",
-          x = unit(1, "npc") - unit(1, "lines"),
-          gp = gpar(col = "blue", cex = 1),
-          y = unit(.5, "lines")
+          x = unit(1, "npc") -
+            unit(1, "lines"),
+          gp = gpar(col = "blue",
+                    cex = 1),
+          y = unit(0.5, "lines")
         )
         grid.text(
           "5'",
           x = unit(2, "lines"),
           gp = gpar(col = "blue", cex = 1),
-          y = unit(.5, "lines")
+          y = unit(0.5,
+                   "lines")
         )
-
         popViewport()
-        pushViewport(viewport(y = .125, height = .25))
+        pushViewport(viewport(y = 0.125, height = 0.25))
         grid.lines(
-          x = unit(c(lm / (nlong + 2), lm / (nlong + 2)), "npc"),
+          x = unit(c(lm / (nlong + 2), lm / (nlong +
+                                               2)), "npc"),
           y = unit(c(1.2, 0.75), "npc"),
           gp = gpar(fill = "black"),
           arrow = arrow(
-            length = unit(0.05, "inches"),
+            length = unit(0.05,
+                          "inches"),
             ends = "last",
             type = "closed"
           )
         )
         grid.lines(
-          x = unit(c((lm + m) / (nlong + 2), lm / (nlong + 2)), "npc"),
+          x = unit(c((lm + m) / (nlong + 2), lm / (nlong +
+                                                     2)), "npc"),
           y = unit(c(1.2, 0.75), "npc"),
           gp = gpar(fill = "black"),
           arrow = arrow(
-            length = unit(0.05, "inches"),
+            length = unit(0.05,
+                          "inches"),
             ends = "last",
             type = "closed"
           )
         )
-
-      } else{
-        right <- (nlong - m) / 2 - (short_best_match + n1 + 1) + m
+      }
+      else {
+        right <- (nlong - m) / 2 - (short_best_match +
+                                      n1 + 1) + m
         left <- nlong - lm - right
-
         a <- makepwm(shorter, short_strand_sign)
-        rownames(a) <- c("A", "C", "G", "T")
-        a_full <-
-          cbind(a[, 1:(lm - 1)], rep.col(c(0.25, 0.25, 0.25, 0.25), m), a[, lm:(2 *
-                                                                                  lm - 2)])
+        rownames(a) <- c("A", "C", "G",
+                         "T")
+        a_full <- cbind(a[, 1:(lm - 1)], rep.col(c(0.25,
+                                                   0.25, 0.25, 0.25), m), a[, lm:(2 * lm - 2)])
         p <- makemotif(motif, short_strand_sign)
         p_full <- makepfull(p, left, right)
         title <-
@@ -1312,7 +1435,7 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
             "Best match to the mutation sequence m="
           )
         popViewport()
-        pushViewport(viewport(y = .375, height = .25))
+        pushViewport(viewport(y = 0.375, height = 0.25))
         motifStack::plotMotifLogo(
           a_full,
           xaxis = FALSE,
@@ -1324,19 +1447,21 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
         )
         grid.text(
           "5'",
-          x = unit(1, "npc") - unit(1, "lines"),
-          gp = gpar(col = "blue", cex = 1),
+          x = unit(1, "npc") -
+            unit(1, "lines"),
+          gp = gpar(col = "blue",
+                    cex = 1),
           y = unit(2.5, "lines")
         )
         grid.text(
           "3'",
           x = unit(2, "lines"),
           gp = gpar(col = "blue", cex = 1),
-          y = unit(2.5, "lines")
+          y = unit(2.5,
+                   "lines")
         )
         popViewport()
-        pushViewport(viewport(y = .125, height = .25))
-        #par(mar = c(4, 3, 1.5, 2))
+        pushViewport(viewport(y = 0.125, height = 0.25))
         motifStack::plotMotifLogo(
           p_full,
           yaxis = FALSE,
@@ -1348,20 +1473,25 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
         )
         grid.text(
           "5'",
-          x = unit(1, "npc") - unit(1, "lines"),
-          gp = gpar(col = "blue", cex = 1),
+          x = unit(1, "npc") -
+            unit(1, "lines"),
+          gp = gpar(col = "blue",
+                    cex = 1),
           y = unit(2.5, "lines")
         )
         grid.text(
           "3'",
           x = unit(2, "lines"),
           gp = gpar(col = "blue", cex = 1),
-          y = unit(2.5, "lines")
+          y = unit(2.5,
+                   "lines")
         )
         grid.lines(
           x = c(
-            convertUnit(unit(3, "lines"), "npc", valueOnly = TRUE),
-            1 - convertUnit(unit(2, "lines"), "npc", valueOnly = TRUE)
+            convertUnit(unit(3, "lines"),
+                        "npc", valueOnly = TRUE),
+            1 - convertUnit(unit(2,
+                                 "lines"), "npc", valueOnly = TRUE)
           ),
           y = unit(1, "lines"),
           gp = gpar(
@@ -1370,29 +1500,34 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
             xpd = NA
           ),
           arrow = arrow(
-            length = unit(0.1, "inches"),
+            length = unit(0.1,
+                          "inches"),
             angle = 15,
             ends = "first"
           )
         )
         popViewport()
-        pushViewport(viewport(y = .125, height = .25))
+        pushViewport(viewport(y = 0.125, height = 0.25))
         grid.lines(
-          x = unit(c(lm / (nlong + 2), lm / (nlong + 2)), "npc"),
+          x = unit(c(lm / (nlong + 2), lm / (nlong +
+                                               2)), "npc"),
           y = unit(c(1.2, 0.75), "npc"),
           gp = gpar(fill = "black"),
           arrow = arrow(
-            length = unit(0.05, "inches"),
+            length = unit(0.05,
+                          "inches"),
             ends = "last",
             type = "closed"
           )
         )
         grid.lines(
-          x = unit(c((lm + m) / (nlong + 2), lm / (nlong + 2)), "npc"),
+          x = unit(c((lm + m) / (nlong + 2), lm / (nlong +
+                                                     2)), "npc"),
           y = unit(c(1.2, 0.75), "npc"),
           gp = gpar(fill = "black"),
           arrow = arrow(
-            length = unit(0.05, "inches"),
+            length = unit(0.05,
+                          "inches"),
             ends = "last",
             type = "closed"
           )
@@ -1400,5 +1535,4 @@ plot_indel_binding <- function(indel_info, motif_scores, motif) {
       }
     }
   }
-
 }
