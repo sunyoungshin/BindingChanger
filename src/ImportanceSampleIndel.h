@@ -7,6 +7,7 @@ using namespace Rcpp;
 class ImportanceSampleIndel : public PairedImportanceSamplingBase
 {
 public:
+    bool normalize_score_by_seq_len;
     ImportanceSampleIndel(
         MarkovChainParam mc_param,
         NumericMatrix adj_pwm,
@@ -50,12 +51,14 @@ RcppExport SEXP p_value_change_indel(
     SEXP,
     SEXP,
     SEXP,
+    SEXP,
     SEXP
 );
 
 RcppExport SEXP comp_indel_motif_scores(SEXP, SEXP, SEXP);
 
 RcppExport SEXP test_importance_sample_indel(
+    SEXP,
     SEXP,
     SEXP,
     SEXP,

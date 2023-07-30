@@ -21,7 +21,7 @@ int get_min_start_pos(int, int);
 int get_max_start_pos(int, int);
 IntegerVector revert_sequence(IntegerVector);
 NumericVector comp_subseq_scores(NumericMatrix, IntegerVector);
-SequenceScores comp_seq_scores(NumericMatrix, IntegerVector);
+SequenceScores comp_seq_scores(NumericMatrix, IntegerVector, bool);
 double pwm_log_prob(NumericMatrix, IntegerVector, int);
 double bidir_pwm_log_prob(NumericMatrix, IntegerVector, int);
 RcppExport SEXP transition_matrix(SEXP);

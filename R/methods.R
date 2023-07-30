@@ -13,6 +13,8 @@
 #' @param trans_mat A numeric matrix for the transition matrix of the Markov
 #' Chain background model.
 #' @param sample_size An integer for the Monte-Carlo sample size.
+#' @param normalize_score_by_seq_len Boolean for whether scores are normalized
+#' by sequence lengths.
 #' @importFrom plyr ldply
 #' @return A data frame.
 pvalue_single_thread_helper <-
@@ -22,7 +24,8 @@ pvalue_single_thread_helper <-
            motif_scores,
            prior,
            trans_mat,
-           sample_size) {
+           sample_size,
+           normalize_score_by_seq_len) {
     if (length(unique(sapply(indel_info, "[[", "insertion_len"))) != 1) {
       stop("All indels must have the same insertion length.")
     }
@@ -50,7 +53,6 @@ pvalue_single_thread_helper <-
           sample_seq_len <-
             2 * nrow(pwm) - 2 + this_indel_info$insertion_len
           reference_score <- motif_scores[indel_id, 1]
-
         } else  if (j == 2) {
           # j=2 for short sequence
           sample_seq_len <- 2 * nrow(pwm) - 2
@@ -93,11 +95,20 @@ pvalue_single_thread_helper <-
 
       mat_d <-
         comp_indel_mat_d(pwm, prior, this_indel_info$insertion_len)
-      score_diff <- c(scores[, 1] - scores[, 2])
       # reference_score is used to compute the theta parameter in importance
       # sampling.
-      reference_score <-
-        motif_scores[indel_id, 1] - motif_scores[indel_id, 2]
+      if (normalize_score_by_seq_len) {
+        # normalize the scores
+        score_diff <- c(scores[, 1]  / (2 * nrow(pwm) - 2 + this_indel_info$insertion_len)
+          - scores[, 2] / (2 * nrow(pwm) - 2))
+        reference_score <-
+          c(motif_scores[indel_id, 1] / (2 * nrow(pwm) - 2 + this_indel_info$insertion_len)
+          - motif_scores[indel_id, 2] / (2 * nrow(pwm) - 2))
+      } else {
+        score_diff <- c(scores[, 1] - scores[, 2])
+        reference_score <-
+          motif_scores[indel_id, 1] - motif_scores[indel_id, 2]
+      }
       p_value_change <-
         .Call(
           "p_value_change_indel",
@@ -119,7 +130,8 @@ pvalue_single_thread_helper <-
           # sampling.
           reference_score,
           sample_size,
-          loglik_type = 0,
+          0, # loglik_type
+          normalize_score_by_seq_len,
           package = "atIndel"
         )
       results2[[result_id]] <- list(
@@ -255,7 +267,7 @@ indel_motif_scores <-
             motif_lib[nm],
             indel_info,
             # select the log-lik type here
-            loglik_type = 0,
+            0, #loglik_type
             package = "atIndel"
           )
           k$num <- nm
@@ -347,7 +359,7 @@ indel_motif_scores <-
               motif_lib[nm],
               indel_info,
               # select the log-lik type here
-              loglik_type = 0,
+              0,
               package = "atIndel"
             )
             k$num <- nm
@@ -423,7 +435,7 @@ indel_motif_scores <-
         motif_lib,
         indel_info,
         # select the log-lik type here
-        loglik_type = 0,
+        0,
         package = "atIndel"
       )
 
@@ -469,6 +481,8 @@ indel_motif_scores <-
 #' @param trans_mat A numeric matrix for the transition matrix parameters
 #  of the Markov Chain model for background sequences.
 #' @param sample_size An integer for the importance sampling sample size.
+#' @param normalize_score_by_seq_len Boolean for whether the scores are
+#' normalized by the sequence lengths.
 #' @param num_cores An integer for the number of parallel processes.
 #' @details TODO.
 #' @return A list object of position weight matrices.
@@ -485,6 +499,7 @@ indel_motif_scores <-
 #'   prior=prior,
 #'   trans_mat=trans_mat,
 #'   sample_size=100,
+#'   normalize_score_by_seq_len=FALSE,
 #'   num_cores=1
 #' )
 #' @useDynLib atIndel
@@ -498,6 +513,7 @@ indel_p_values <-
            prior,
            trans_mat,
            sample_size,
+           normalize_score_by_seq_len,
            num_cores = 1) {
     validate_motif_scores(motif_scores, names(motif_lib), names(indel_info))
 
@@ -574,7 +590,8 @@ indel_p_values <-
               motif_scores = param$motif_scores,
               prior = prior,
               trans_mat = trans_mat,
-              sample_size = sample_size
+              sample_size = sample_size,
+              normalize_score_by_seq_len = normalize_score_by_seq_len
             ),
           param_list,
           BPPARAM = bp_param,
@@ -592,7 +609,8 @@ indel_p_values <-
               motif_scores = param$motif_scores,
               prior = prior,
               trans_mat = trans_mat,
-              sample_size = sample_size
+              sample_size = sample_size,
+              normalize_score_by_seq_len = normalize_score_by_seq_len
             ),
           param_list,
           SIMPLIFY = FALSE

@@ -10,3 +10,4 @@ src/*.dll
 *.timings
 *.DS_Store
 *.R~
+*.Rapp.history

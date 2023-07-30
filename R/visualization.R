@@ -73,13 +73,14 @@ makepfull <- function(p, left, right) {
 #' @param motif A list of length 1 containing the motif PWM. The
 #' name of this element is the motif name.
 #' @examples
-#' data(example)
+#' \dontrun{data(example)
 #' motif_scores <- indel_motif_scores(motif_lib, indel_info)$list
 #' plot_indel_binding(
 #'    indel_info[1],
 #'    motif_scores,
 #'    motif_lib[1]
 #' )
+#' }
 #' @import grid
 #' @importFrom motifStack plotMotifLogo
 #' @author Qinyi Zhou \email{qinyi.zhou@utdallas.edu},

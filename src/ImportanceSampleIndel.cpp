@@ -82,8 +82,8 @@ RcppExport SEXP comp_indel_motif_scores(
                 }
             }
 
-            SequenceScores long_seq_scores = comp_seq_scores(pwm, long_seq);
-            SequenceScores short_seq_scores = comp_seq_scores(pwm, short_seq);
+            SequenceScores long_seq_scores = comp_seq_scores(pwm, long_seq, false);
+            SequenceScores short_seq_scores = comp_seq_scores(pwm, short_seq, false);
 
             if (long_seq_scores.best_match_pos > 0)
             {
@@ -158,7 +158,8 @@ RcppExport SEXP p_value_change_indel(
     SEXP _pval_ratio,
     SEXP _score_percentile,
     SEXP _sample_size,
-    SEXP _loglik_type)
+    SEXP _loglik_type,
+    SEXP _normalize_score_by_seq_len)
 {
     NumericMatrix trans_mat(_trans_mat);
     NumericVector stat_dist(_stat_dist);
@@ -172,7 +173,6 @@ RcppExport SEXP p_value_change_indel(
     double score_percentile = as<double>(_score_percentile);
     int sample_size = as<int>(_sample_size);
     LoglikType loglik_type = static_cast<LoglikType>(as<int>(_loglik_type));
-    ;
 
     NumericMatrix p_values(scores.size(), 4);
     NumericVector sample_score(5);
@@ -180,6 +180,7 @@ RcppExport SEXP p_value_change_indel(
     // find the tilting parameter
     ImportanceSampleIndel sampler(mc_param, adj_pwm, pwm, mat_d, insertion_len);
     sampler.initialize(score_percentile);
+    sampler.normalize_score_by_seq_len = as<bool>(_normalize_score_by_seq_len);
 
     double tol = 1e-10;
 
@@ -402,8 +403,8 @@ ScorePair ImportanceSampleIndel::comp_score_pair(
     }
     // compute the maximum score for both sequences
     double long_seq_score = 0, short_seq_score = 0;
-    SequenceScores long_seq_scores = comp_seq_scores(this->pwm, sample_vec);
-    SequenceScores short_seq_scores = comp_seq_scores(this->pwm, short_seq);
+    SequenceScores long_seq_scores = comp_seq_scores(this->pwm, sample_vec, this->normalize_score_by_seq_len);
+    SequenceScores short_seq_scores = comp_seq_scores(this->pwm, short_seq, this->normalize_score_by_seq_len);
     switch (loglik_type)
     {
     case LoglikType::mean:
@@ -575,7 +576,8 @@ RcppExport SEXP test_importance_sample_indel(
     SEXP _insertion_len,
     SEXP _score_percentile,
     SEXP _pwm,
-    SEXP _loglik_type)
+    SEXP _loglik_type,
+    SEXP _normalize_score_by_seq_len)
 {
     NumericVector stat_dist(_stat_dist);
     NumericMatrix trans_mat(_trans_mat);
@@ -589,6 +591,7 @@ RcppExport SEXP test_importance_sample_indel(
 
     ImportanceSampleIndel sampler(mc_param, adj_pwm, pwm, mat_d, insertion_len);
     sampler.initialize(score_percentile);
+    sampler.normalize_score_by_seq_len = as<bool>(_normalize_score_by_seq_len);
     SampleSequence example = sampler.gen_importance_sample();
     ScorePair score_pair = sampler.comp_score_pair(example.sequence, loglik_type);
     AdjWeights adj_weights = sampler.gen_importance_sample_weights(example.sequence);

@@ -242,7 +242,7 @@ IntegerVector importance_sample(NumericMatrix delta, NumericVector stat_dist, Nu
 NumericVector compute_sample_score(NumericMatrix pwm, IntegerVector sample_vec, int start_pos, double theta)
 {
 	// compute the maximum score
-	SequenceScores seq_scores = comp_seq_scores(pwm, sample_vec);
+	SequenceScores seq_scores = comp_seq_scores(pwm, sample_vec, false);
 	// compute the weight = prior density / importance sampling density
 	// NOTE: must use the score based on the true start_pos to compute the weight
 	double adj_score = 0;
