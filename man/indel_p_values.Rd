@@ -11,6 +11,7 @@ indel_p_values(
   prior,
   trans_mat,
   sample_size,
+  normalize_score_by_seq_len,
   num_cores = 1
 )
 }
@@ -28,6 +29,9 @@ See \link{indel_info} for details and an example.}
 \item{trans_mat}{A numeric matrix for the transition matrix parameters}
 
 \item{sample_size}{An integer for the importance sampling sample size.}
+
+\item{normalize_score_by_seq_len}{Boolean for whether the scores are
+normalized by the sequence lengths.}
 
 \item{num_cores}{An integer for the number of parallel processes.}
 }
@@ -50,6 +54,7 @@ indel_p_values(
   prior=prior,
   trans_mat=trans_mat,
   sample_size=100,
+  normalize_score_by_seq_len=FALSE,
   num_cores=1
 )
 }

@@ -1,7 +1,7 @@
 Package: atIndel
 Type: Package
 Title: Affinity test for identifying regularity Indels
-Version: 0.0.4
+Version: 0.0.5
 Date: 2020-12-22
 Authors@R: c(person(given = "Chandler", family = "Zuo", role = "aut"),
         person(given = "Qinyi", family = "Zhou", role = "aut"),
@@ -13,7 +13,7 @@ Depends: R (>= 4.0)
 LazyData: true
 Suggests: testthat, BiocStyle, knitr, rmarkdown
 Imports: BSgenome, BiocFileCache, BiocParallel, Biostrings, Rcpp, data.table, ggplot2, grDevices, graphics, grid, limma, motifStack, plyr, rappdirs, rlist, seqinr, stats, testit, utils
-RoxygenNote: 7.1.1
+RoxygenNote: 7.2.3
 biocViews: Software, ChIPSeq, GenomeAnnotation, MotifAnnotation, Visualization
 URL: https://github.com/chandler/atIndel
 BugReports: https://github.com/sunyoungshin/atIndel/issues

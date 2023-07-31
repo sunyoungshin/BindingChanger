@@ -4,6 +4,7 @@
 Compute likelihood ratio scores for SNPs' effect on motif matching.
 @arg _motif_library The list object containing a 'matrix' component, which is a list of position weight matrices.
 @arg _snpinfo A list object containing two components:
+@arg _normalize_score_by_seq_len Boolean for whether scores are normalized by sequence lengths.
 sequence_matrix: is a matrix for the sequences around each SNP. Each column corresponds to a SNP, and each row corresponds to a nucleotide position.
 a1: A vector for the nucleobases on the reference genome at the SNP locations.
 a2: A vector for the nucleobases after SNP.
@@ -87,8 +88,8 @@ RcppExport SEXP motif_score(SEXP _motif_library, SEXP _snpinfo)
 				snp_seq[i] = snp_sequence[i + delta_len];
 				base_seq[i] = snp_sequence_snp_base[i + delta_len];
 			}
-			SequenceScores ref_scores = comp_seq_scores(pwm, snp_seq);
-			SequenceScores snp_scores = comp_seq_scores(pwm, base_seq);
+			SequenceScores ref_scores = comp_seq_scores(pwm, snp_seq, false);
+			SequenceScores snp_scores = comp_seq_scores(pwm, base_seq, false);
 			int _match_ref_base = ref_scores.best_match_pos;
 			int _match_snp_base = snp_scores.best_match_pos;
 			if(ref_scores.best_match_pos > 0) {
@@ -194,7 +195,7 @@ IntegerVector revert_sequence(IntegerVector sequence)
  * 2*i-th position is the score for the i-th subsequence on the positive strand,
  * (2*i+1)-th position is the score for the i-th subsequence on the reverse strand.
  */
-NumericVector comp_subseq_scores(NumericMatrix pwm, IntegerVector sequence)
+NumericVector comp_subseq_scores(NumericMatrix pwm, IntegerVector sequence, bool normalize_score_by_seq_len)
 {
 	int motif_len = pwm.nrow();
 	int seq_len = sequence.size();
@@ -210,6 +211,10 @@ NumericVector comp_subseq_scores(NumericMatrix pwm, IntegerVector sequence)
 		int idx = 2 * (start_pos - min_start_pos);
 		subseq_scores[idx] = pwm_log_prob(pwm, sequence, start_pos);
 		subseq_scores[idx + 1] = pwm_log_prob(pwm, rev_sequence, start_pos);
+		if (normalize_score_by_seq_len) {
+			subseq_scores[idx] /= seq_len;
+			subseq_scores[idx + 1] /= seq_len;
+		}
 	}
 	return subseq_scores;
 }
@@ -220,9 +225,9 @@ NumericVector comp_subseq_scores(NumericMatrix pwm, IntegerVector sequence)
  * If the best subsequence has starting position x on the negative strand, this returns -x-1.
  * Returns the struct containing (best match position, max loglik, mean loglik, median loglik).
  */
-SequenceScores comp_seq_scores(NumericMatrix pwm, IntegerVector sequence)
+SequenceScores comp_seq_scores(NumericMatrix pwm, IntegerVector sequence, bool normalize_score_by_seq_len)
 {
-	NumericVector subseq_scores = comp_subseq_scores(pwm, sequence);
+	NumericVector subseq_scores = comp_subseq_scores(pwm, sequence, normalize_score_by_seq_len);
 	int raw_max_idx = Rcpp::which_max(subseq_scores);
 	int match_pos = raw_max_idx / 2 + 1;
 	if (raw_max_idx % 2 == 1)

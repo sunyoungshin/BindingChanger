@@ -12,7 +12,8 @@ pvalue_single_thread_helper(
   motif_scores,
   prior,
   trans_mat,
-  sample_size
+  sample_size,
+  normalize_score_by_seq_len
 )
 }
 \arguments{
@@ -34,6 +35,9 @@ model.}
 Chain background model.}
 
 \item{sample_size}{An integer for the Monte-Carlo sample size.}
+
+\item{normalize_score_by_seq_len}{Boolean for whether scores are normalized
+by sequence lengths.}
 }
 \value{
 A data frame.

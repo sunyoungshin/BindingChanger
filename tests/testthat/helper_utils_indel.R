@@ -6,7 +6,8 @@ test_importance_sample_indel <- function(prior,
                                          mat_d,
                                          insertion_len,
                                          score_percentile,
-                                         loglik_type) {
+                                         loglik_type,
+                                         normalize_score_by_seq_len) {
   return(
     .Call(
       "test_importance_sample_indel",
@@ -18,6 +19,7 @@ test_importance_sample_indel <- function(prior,
       score_percentile,
       pwm,
       loglik_type,
+      normalize_score_by_seq_len,
       package = "atIndel"
     )
   )

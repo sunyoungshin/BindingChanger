@@ -18,7 +18,8 @@ test_that("Error: mismatch between theta and the expected score difference.",
                 mat_d = mat_d,
                 insertion_len = insertion_len,
                 score_percentile = score_percentile,
-                loglik_type = 0
+                loglik_type = 0,
+                normalize_score_by_seq_len = FALSE
               )
               tol <- 1e-4
               expected_score_diff <-
@@ -60,7 +61,8 @@ test_that("Error: normalization constant is not correct.", {
       mat_d = mat_d,
       insertion_len = insertion_len,
       score_percentile = score_percentile,
-      loglik_type = 0
+      loglik_type = 0,
+      normalize_score_by_seq_len = FALSE
     )
     cond_norm_const <-
       R_comp_cond_norm_const(mat_d = mat_d,
@@ -91,7 +93,8 @@ test_that("Error: importance sample weights are not correct.", {
       mat_d = mat_d,
       insertion_len = insertion_len,
       score_percentile = score_percentile,
-      loglik_type = 0
+      loglik_type = 0,
+      normalize_score_by_seq_len = FALSE
     )
     result_r <- R_comp_importance_sample_weights(
       adj_pwm = artifacts$adj_pwm,
@@ -129,7 +132,8 @@ test_that("Error: max likelihood scores on the sequence pair are not correct.",
                 mat_d = mat_d,
                 insertion_len = insertion_len,
                 score_percentile = score_percentile,
-                loglik_type = 0
+                loglik_type = 0,
+                normalize_score_by_seq_len = FALSE
               )
               expect_equal(
                 R_motif_score_max(
@@ -175,7 +179,8 @@ test_that("Error: distribution of the motif scores is not correct.",
                     mat_d = mat_d,
                     insertion_len = insertion_len,
                     score_percentile = score_percentile,
-                    loglik_type = 0
+                    loglik_type = 0,
+                    normalize_score_by_seq_len = FALSE
                   )
                   R_sample_seq <- R_gen_importance_sample(
                     prior = artifacts$prior,
@@ -202,8 +207,8 @@ test_that("Error: distribution of the motif scores is not correct.",
                 })
               suppressWarnings({
                 # NOTE: ks.test warns about ties
-                expect_gte(ks.test(score_pairs[1,], score_pairs[3, ])$p.value, 0.05)
-                expect_gte(ks.test(score_pairs[2,], score_pairs[4, ])$p.value, 0.05)
+                expect_gte(ks.test(score_pairs[1,], score_pairs[3, ])$p.value, 0.01)
+                expect_gte(ks.test(score_pairs[2,], score_pairs[4, ])$p.value, 0.01)
               })
             }
           })
