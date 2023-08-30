@@ -249,7 +249,7 @@ indel_motif_scores <-
                                     sequence_len,
                                     motif_lib,
                                     indel_info) {
-          k <- list()
+          ret <- list()
           # TODO: In parallel calculation, we don't need to manually partition
           # motifs in to num_cores groups as here. We only need to sepcify
           # # of threads (num_cores). Each of them will pick one motif,
@@ -270,9 +270,9 @@ indel_motif_scores <-
             0, #loglik_type
             package = "atIndel"
           )
-          k$num <- nm
-          k$motif_scores <- motif_scores
-          k
+          ret$num <- nm
+          ret$motif_scores <- motif_scores
+          ret
         }
 
         motif_score_par_list <-
@@ -348,7 +348,7 @@ indel_motif_scores <-
                    sequence_len,
                    motif_lib,
                    indel_info) {
-            k <- list()
+            ret <- list()
             if (num_motifs >= k * num_cores + i) {
               nm <- c(0:k) * num_cores + i
             } else{
@@ -362,9 +362,9 @@ indel_motif_scores <-
               0,
               package = "atIndel"
             )
-            k$num <- nm
-            k$motif_scores <- motif_scores
-            k
+            ret$num <- nm
+            ret$motif_scores <- motif_scores
+            ret
           }
         motif_score_par_list <-
           BiocParallel::bpmapply(
