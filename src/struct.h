@@ -6,6 +6,7 @@ using namespace Rcpp;
 
 enum LoglikType {max, mean, median};
 enum TestType {gte,lte,absolute,two_sided};
+enum PvalMethod {rank, score, both};
 
 struct SequenceScores {
   int best_match_pos;
