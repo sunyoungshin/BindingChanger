@@ -499,9 +499,9 @@ indel_motif_scores <-
 #  of the Markov Chain model for background sequences.
 #' @param sample_size An integer for the importance sampling sample size.
 #' @param normalize_score_by_seq_len Boolean for whether the scores are
-#' normalized by the sequence lengths.
+#' normalized by the sequence lengths. Default: TRUE.
 #' @param pval_method 0: rank test only. 1: binding score diff test only.
-#' 2: both.
+#' 2: both. Default: 2.
 #' @param num_cores An integer for the number of parallel processes.
 #' @details TODO.
 #' @return A list object of position weight matrices.
@@ -533,8 +533,8 @@ indel_p_values <-
            prior,
            trans_mat,
            sample_size,
-           normalize_score_by_seq_len,
-           pval_method,
+           normalize_score_by_seq_len = TRUE,
+           pval_method = 2,
            num_cores = 1) {
     validate_motif_scores(motif_scores, names(motif_lib), names(indel_info))
 
