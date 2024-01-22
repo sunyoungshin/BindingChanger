@@ -14,9 +14,10 @@ if (!require("devtools", quietly = TRUE))
 library(devtools)
 install_github("sunyoungshin/atIndel")
 ```
+
 # Example
 
-##Load the motif library and InDel list.
+### 1. Load the motif library and InDel list.
 ```{r}
 library(atIndel)
 ```
@@ -26,13 +27,13 @@ motif_lib[1:3]
 indel_info[1:2]
 ```
 
-##Compute the TF binding scores for the reference and mutant sequences. 
+### 2. Compute the TF binding scores for the reference and mutant sequences. 
 ```{r}
 motif_scores<-indel_motif_scores(motif_lib,indel_info)$list
 motif_scores
 ```
 
-##Compute binding change p-values and/or score difference p-values.
+### 3. Compute binding change p-values and/or score difference p-values.
 ```{r p-val,eval = TRUE}
 pval<-indel_p_values(
    motif_lib=motif_lib,
@@ -47,9 +48,11 @@ pval<-indel_p_values(
 pval
 ```
 
-##Visualize how the TF binding motif matches to the reference genome sequence and the sequence with Indel. 
+### 4.Visualize how the TF binding motif matches to the reference genome sequence and the sequence with Indel. 
 ```{r}
 plot_indel_binding(indel_info[1],motif_scores, motif_lib[1])
 ```
+
+<img width="600px" src="./arnt_chr1-100231849-2-1.png" alt="arnt_chr1-100231849-2-1 png" />
 
 The second and third row correspond to the reference and mutant sequences around the InDel mutation. The forward/reverse strands are marked as (+), (-), respectively. The Arnt binding motif is on the first and fourth row. The first one is located at the highest likely binding position with the reference sequence. Similarly, the other one at the bottome is at the highest likely binding position with the mutant sequence.
