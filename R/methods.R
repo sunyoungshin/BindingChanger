@@ -15,6 +15,7 @@
 #' @param sample_size An integer for the Monte-Carlo sample size.
 #' @param normalize_score_by_seq_len Boolean for whether scores are normalized
 #' by sequence lengths.
+#' @param pval_method 0: rank test only. 1: binding score difference test only. 2: both.
 #' @importFrom plyr ldply
 #' @return A data frame.
 pvalue_single_thread_helper <-
@@ -25,7 +26,8 @@ pvalue_single_thread_helper <-
            prior,
            trans_mat,
            sample_size,
-           normalize_score_by_seq_len) {
+           normalize_score_by_seq_len,
+           pval_method) {
     if (length(unique(sapply(indel_info, "[[", "insertion_len"))) != 1) {
       stop("All indels must have the same insertion length.")
     }
@@ -132,20 +134,35 @@ pvalue_single_thread_helper <-
           sample_size,
           0, # loglik_type
           normalize_score_by_seq_len,
+          pval_method,
           package = "atIndel"
         )
-      results2[[result_id]] <- list(
-        motif_scores = scores,
+      if (pval_method == 0) {
+        p_value_change = list(
+          rank = pval_with_less_var(p_value_change$rank)[, 1],
+          score = rep(NA, length(p_value_change$rank))
+        )
+      } else if (pval_method == 1) {
+        p_value_change = list(
+          score = pval_with_less_var(p_value_change$score)[, 1],
+          rank = rep(NA, length(p_value_change$score))
+        )
+      } else {
         p_value_change = list(
           rank = pval_with_less_var(p_value_change$rank)[, 1],
           score = pval_with_less_var(p_value_change$score)[, 1]
-        ),
+        )
+      }
+      results2[[result_id]] <- list(
+        motif_scores = scores,
+        p_value_change = p_value_change,
         p_value_affinity1 = p_value_affinity[1],
         p_value_affinity2 = p_value_affinity[2]
       )
       result_id <- result_id + 1
     }
     r <- plyr::ldply (results2, data.frame)
+    message("converted to dataframe")
     r <-
       data.frame(id <-
                    rep(names(indel_info)),
@@ -482,7 +499,9 @@ indel_motif_scores <-
 #  of the Markov Chain model for background sequences.
 #' @param sample_size An integer for the importance sampling sample size.
 #' @param normalize_score_by_seq_len Boolean for whether the scores are
-#' normalized by the sequence lengths.
+#' normalized by the sequence lengths. Default: TRUE.
+#' @param pval_method 0: rank test only. 1: binding score diff test only.
+#' 2: both. Default: 2.
 #' @param num_cores An integer for the number of parallel processes.
 #' @details TODO.
 #' @return A list object of position weight matrices.
@@ -500,6 +519,7 @@ indel_motif_scores <-
 #'   trans_mat=trans_mat,
 #'   sample_size=100,
 #'   normalize_score_by_seq_len=FALSE,
+#'   pval_method=2,
 #'   num_cores=1
 #' )
 #' @useDynLib atIndel
@@ -513,7 +533,8 @@ indel_p_values <-
            prior,
            trans_mat,
            sample_size,
-           normalize_score_by_seq_len,
+           normalize_score_by_seq_len = TRUE,
+           pval_method = 2,
            num_cores = 1) {
     validate_motif_scores(motif_scores, names(motif_lib), names(indel_info))
 
@@ -591,7 +612,8 @@ indel_p_values <-
               prior = prior,
               trans_mat = trans_mat,
               sample_size = sample_size,
-              normalize_score_by_seq_len = normalize_score_by_seq_len
+              normalize_score_by_seq_len = normalize_score_by_seq_len,
+              pval_method = pval_method
             ),
           param_list,
           BPPARAM = bp_param,
@@ -610,7 +632,8 @@ indel_p_values <-
               prior = prior,
               trans_mat = trans_mat,
               sample_size = sample_size,
-              normalize_score_by_seq_len = normalize_score_by_seq_len
+              normalize_score_by_seq_len = normalize_score_by_seq_len,
+              pval_method = pval_method
             ),
           param_list,
           SIMPLIFY = FALSE

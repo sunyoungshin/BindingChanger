@@ -159,7 +159,8 @@ RcppExport SEXP p_value_change_indel(
     SEXP _score_percentile,
     SEXP _sample_size,
     SEXP _loglik_type,
-    SEXP _normalize_score_by_seq_len)
+    SEXP _normalize_score_by_seq_len,
+    SEXP _pval_method)
 {
     NumericMatrix trans_mat(_trans_mat);
     NumericVector stat_dist(_stat_dist);
@@ -173,6 +174,7 @@ RcppExport SEXP p_value_change_indel(
     double score_percentile = as<double>(_score_percentile);
     int sample_size = as<int>(_sample_size);
     LoglikType loglik_type = static_cast<LoglikType>(as<int>(_loglik_type));
+    PvalMethod pval_method = static_cast<PvalMethod>(as<int>(_pval_method));
 
     NumericMatrix p_values(scores.size(), 4);
     NumericVector sample_score(5);
@@ -205,45 +207,62 @@ RcppExport SEXP p_value_change_indel(
             loglik_type);
         AdjWeights adj_weights = sampler.gen_importance_sample_weights(example.sequence);
         mean_score += sample_score[4];
-        // copy the weights and the scores for each allele
         score(i, 0) = sample_score_pair.long_seq_score;
         score(i, 1) = sample_score_pair.short_seq_score;
-        score_diff(i, 0) = score(i, 0) - score(i, 1);
+        // copy the weights and the scores for each allele
+        if (pval_method == PvalMethod::score | pval_method == PvalMethod::both) {
+            score_diff(i, 0) = score(i, 0) - score(i, 1);
+        }
         weights(i, 0) = adj_weights.joint;
         weights(i, 1) = adj_weights.base;
         total_weight[0] += adj_weights.joint;
         total_weight[1] += adj_weights.base;
     }
 
-    NumericMatrix pval_loglik = comp_empirical_p_values(scores, weights(_, 0), score_diff, TestType::two_sided);
+    NumericMatrix pval_loglik, pval_rank;
 
-    // compute the sample log ranks
-    NumericMatrix pval_ratio_sam(sample_size, 1);
-    for (int i = 0; i < sample_size; i++)
-    {
-        double pval_sam[2] = {0, 0};
-        for (int j = 0; j < 2; j++)
-        {
-            for (int i1 = 0; i1 < sample_size; i1++)
-            {
-                if (i1 != i && score(i1, j) >= score(i, j))
-                {
-                    pval_sam[j] += weights(i1, j);
-                }
-            }
-            if (pval_sam[j] < tol)
-            {
-                pval_sam[j] = tol;
-            }
-        }
-        pval_ratio_sam(i, 0) = log(pval_sam[0]) - log(pval_sam[1]) - log(total_weight[0] - weights(i, 0)) + log(total_weight[1] - weights[i, 1]);
+    if (pval_method == PvalMethod::score | pval_method == PvalMethod::both) {
+        pval_loglik = comp_empirical_p_values(scores, weights(_, 0), score_diff, TestType::two_sided);
     }
 
-    NumericMatrix pval_rank = comp_empirical_p_values(pval_ratio, weights(_, 0), pval_ratio_sam, TestType::two_sided);
+    // compute the sample log ranks
+    if (pval_method == PvalMethod::rank | pval_method == PvalMethod::both) {
+        NumericMatrix pval_ratio_sam(sample_size, 1);
+        for (int i = 0; i < sample_size; i++)
+        {
+            double pval_sam[2] = {0, 0};
+            for (int j = 0; j < 2; j++)
+            {
+                for (int i1 = 0; i1 < sample_size; i1++)
+                {
+                    if (i1 != i && score(i1, j) >= score(i, j))
+                    {
+                        pval_sam[j] += weights(i1, j);
+                    }
+                }
+                if (pval_sam[j] < tol)
+                {
+                    pval_sam[j] = tol;
+                }
+            }
+            pval_ratio_sam(i, 0) = log(pval_sam[0]) - log(pval_sam[1]) - log(total_weight[0] - weights(i, 0)) + log(total_weight[1] - weights[i, 1]);
+        }
 
-    Rcpp::List ret = Rcpp::List::create(
+        pval_rank = comp_empirical_p_values(pval_ratio, weights(_, 0), pval_ratio_sam, TestType::two_sided);
+    }
+
+    Rcpp::List ret;
+    if (pval_method == PvalMethod::score) {
+        ret = Rcpp::List::create(
+        Rcpp::Named("score") = pval_loglik);
+    } else if (pval_method == PvalMethod::rank) {
+        ret = Rcpp::List::create(
+        Rcpp::Named("rank") = pval_rank);
+    } else {
+        ret = Rcpp::List::create(
         Rcpp::Named("score") = pval_loglik,
         Rcpp::Named("rank") = pval_rank);
+    }
     return (wrap(ret));
 }
 

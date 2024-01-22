@@ -11,3 +11,5 @@ src/*.dll
 *.DS_Store
 *.R~
 *.Rapp.history
+*.watchman*
+debug.R
