@@ -48,7 +48,7 @@ pval<-indel_p_values(
 pval
 ```
 
-### 4.Visualize how the TF binding motif matches to the reference genome sequence and the sequence with Indel. 
+### 4. Visualize how the TF binding motif matches to the reference genome sequence and the sequence with Indel. 
 ```{r}
 plot_indel_binding(indel_info[1],motif_scores, motif_lib[1])
 ```
