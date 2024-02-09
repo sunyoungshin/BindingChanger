@@ -4,7 +4,7 @@ This document provides introduction to the binding change test (BC test) which i
 
 BC test first performs two statistical testings, one for the longer sequence and another for the shorter one, under the null hypothesis that they do not change the TF-binding affinity.  To establish the null distributions for calculating empirical p-values, we employ a Markov model to generate background DNA sequences.  Then it computes a binding-change score from the two p-values to compare the difference in the binding affinity between the original and mutant sequences.
 
-In addition to BC test, the package provides an option to perform the score difference test. The test statistic of the score difference test is the naive score difference based on the difference between the binding scores normalized by the sequence lengths.
+In addition to BC test, the package provides an option to perform the score difference test. The test statistic of the score difference test is the naive score difference based on the difference between the binding scores with an option to normalization by the sequence lengths. Those who perform both tests are suggested to run both tests at the same time to save computational time.
 
 # R package installation
 
